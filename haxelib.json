@@ -8,6 +8,5 @@
   "releasenote": "まだ",
   "contributors": ["gotoh"],
   "dependencies": {
-      "ecs": "1.0.0"
   }
 }
