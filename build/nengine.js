@@ -10,39 +10,42 @@ HxOverrides.iter = function(a) {
 };
 var ecs_Component = function() { };
 var nengine_components_Transformable = function() { };
-var nengine_components_Transform2 = function(position,x,y) {
+var nengine_components_Transform2D = function(x,y,rotation,scaleX,scaleY) {
 	this.parent = null;
-	this.name = "Transform2";
-	if(position != null) {
-		this.local = position;
-	} else {
-		var this1 = new nengine_math_Vec2Data(x != null ? x : 0,y != null ? y : 0);
-		this.local = this1;
-	}
+	this.name = "Transform2D";
+	var this1 = new nengine_math_Vec2Data(x != null ? x : 0,y != null ? y : 0);
+	this.local.position = this1;
+	this.local.rotation = rotation != null ? rotation : 0;
+	var this2 = new nengine_math_Vec2Data(scaleX != null ? scaleX : 1,scaleY != null ? scaleY : 1);
+	this.local.scale = this2;
 };
-nengine_components_Transform2.__interfaces__ = [nengine_components_Transformable,ecs_Component];
-nengine_components_Transform2.prototype = {
+nengine_components_Transform2D.__interfaces__ = [nengine_components_Transformable,ecs_Component];
+nengine_components_Transform2D.prototype = {
 	get_global: function() {
 		if(this.parent != null) {
-			var v1 = this.local;
-			var v2 = this.parent.get_global();
+			var v1 = this.local.position;
+			var v2 = this.parent.get_global().position;
 			var this1 = new nengine_math_Vec2Data(v1.x + v2.x,v1.y + v2.y);
-			return this1;
+			var tmp = this.local.rotation + this.parent.get_global().rotation;
+			var this2 = new nengine_math_Vec2Data(this.local.scale.x * this.parent.get_global().scale.x,this.local.scale.y * this.parent.get_global().scale.y);
+			return { position : this1, rotation : tmp, scale : this2};
 		} else {
 			return this.local;
 		}
 	}
-	,set_global: function(position) {
+	,set_global: function(transform) {
 		var tmp;
 		if(this.parent != null) {
-			var v1 = this.local;
-			var v2 = this.parent.get_global();
+			var v1 = transform.position;
+			var v2 = this.parent.get_global().position;
 			var this1 = new nengine_math_Vec2Data(v1.x - v2.x,v1.y - v2.y);
-			tmp = this1;
+			var tmp1 = transform.rotation - this.parent.get_global().rotation;
+			var this2 = new nengine_math_Vec2Data(this.parent.get_global().scale.x != 0 ? transform.scale.x / this.parent.get_global().scale.x : 0,this.parent.get_global().scale.y != 0 ? transform.scale.y / this.parent.get_global().scale.y : 0);
+			tmp = { position : this1, rotation : tmp1, scale : this2};
 		} else {
-			tmp = position;
+			tmp = transform;
 		}
-		return this.global = tmp;
+		return this.local = tmp;
 	}
 };
 var nengine_math__$Vec2_Vec2_$Impl_$ = {};

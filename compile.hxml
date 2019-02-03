@@ -1,6 +1,6 @@
 -lib ecs
 
-nengine.components.Transform2
+nengine.components.Transform2D
 nengine.components.Transformable
 
 nengine.math.Vec2
