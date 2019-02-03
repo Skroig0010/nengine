@@ -1,0 +1,13 @@
+{
+  "name": "nengine",
+  "url" : "https://github.com/Skroig0010/nengine",
+  "license": "MIT",
+  "tags": ["game engine"],
+  "description": "ecsを用いたゲームエンジン",
+  "version": "0.1.0",
+  "releasenote": "まだ",
+  "contributors": ["gotoh"],
+  "dependencies": {
+      "ecs": "1.0.0"
+  }
+}

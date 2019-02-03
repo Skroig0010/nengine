@@ -1,0 +1,10 @@
+-lib ecs
+
+nengine.components.Transform2
+nengine.components.Transformable
+
+nengine.math.Vec2
+nengine.math.Vec2Data
+
+
+-js build/nengine.js
