@@ -1,10 +1,19 @@
 -lib ecs
 
+nengine.components.ai.AINode
+nengine.components.ai.Controller
+nengine.components.ai.ControllerInput
+nengine.components.ai.ControllerStickInput
+
+nengine.components.AIContainer
+nengine.components.Collidable
 nengine.components.Transform2D
 nengine.components.Transformable
 
 nengine.math.Vec2
 nengine.math.Vec2Data
+
+nengine.systems.AISystem
 
 
 -js build/nengine.js
