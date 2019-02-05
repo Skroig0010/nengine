@@ -1,12 +1,12 @@
 -lib ecs
 
 nengine.components.ai.AINode
-nengine.components.ai.Controller
-nengine.components.ai.ControllerInput
-nengine.components.ai.ControllerStickInput
 
 nengine.components.AIContainer
 nengine.components.Collidable
+nengine.components.Controller
+nengine.components.ControllerInput
+nengine.components.ControllerStickInput
 nengine.components.Transform2D
 nengine.components.Transformable
 

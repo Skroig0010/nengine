@@ -1,4 +1,4 @@
-package nengine.components.ai;
+package nengine.components;
 
 enum ControllerInput
 {
