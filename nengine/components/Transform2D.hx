@@ -18,13 +18,15 @@ class Transform2D implements Component implements Transformable<Transform2DBase>
 
     public function new(?x:Float, ?y:Float, ?rotation:Float, ?scaleX:Float, ?scaleY:Float)
     {
-        local.position = new Vec2(
-                if(x != null) x else 0,
-                if(y != null) y else 0);
-        local.rotation = if(rotation != null) rotation else 0;
-        local.scale = new Vec2(
-                if(scaleX != null) scaleX else 1,
-                if(scaleY != null) scaleY else 1);
+        local = {
+            position:new Vec2(
+                             if(x != null) x else 0,
+                             if(y != null) y else 0),
+            rotation:if(rotation != null) rotation else 0,
+            scale:new Vec2(
+                    if(scaleX != null) scaleX else 1,
+                    if(scaleY != null) scaleY else 1)
+        };
     }
 
     private function get_global():Transform2DBase
