@@ -7,10 +7,12 @@ class AIContainer implements Component
 {
     public var name(default, null) = "AIContainer";
 
-    public var aiNodes:List<AINode>;
+    public var controllers(default, null):List<Controller>;
+    public var entityOperator(default, null):EntityOperator;
 
-    public function new(aiNodes:Array<AINode>)
+    public function new(entityOperator:EntityOperator, controllers:Array<Controller>)
     {
-        this.aiNodes = Lambda.list(aiNodes);
+        this.entityOperator = entityOperator;
+        this.controllers = Lambda.list(controllers);
     }
 }

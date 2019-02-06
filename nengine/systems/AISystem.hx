@@ -1,4 +1,5 @@
 package nengine.systems;
+import ecs.Entity;
 import ecs.System;
 import ecs.World;
 import nengine.components.AIContainer;
@@ -15,11 +16,14 @@ class AISystem implements System
     public function update(dt:Float)
     {
         var entities = world.getEntities(["AIContainer"]);
-        entities.iter((entity)->{
-            cast (entity.getComponent("AIContainer"), AIContainer)
-                .aiNodes
-                .find((aiNode)->aiNode.isActive(entity))
-                .task(entity);
-        });
+        entities.iter(aiUpdate);
+    }
+
+    private function aiUpdate(entity:Entity):Void
+    {
+        var container = cast (entity.getComponent("AIContainer"), AIContainer);
+        var controller = container.controllers.find((controller)->controller.isActive());
+        controller.update();
+        container.entityOperator.update(controller);
     }
 }
