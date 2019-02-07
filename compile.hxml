@@ -5,16 +5,19 @@ nengine.components.ai.ControllerInput
 nengine.components.ai.ControllerStickInput
 nengine.components.ai.EntityOperator
 
-
 nengine.components.AIContainer
-nengine.components.Collidable
+nengine.components.Collider
+nengine.components.Shape2D
+nengine.components.Shape
 nengine.components.Transform2D
+nengine.components.Transform2DBase
 nengine.components.Transformable
 
 nengine.math.Vec2
 nengine.math.Vec2Data
 
 nengine.systems.AISystem
+nengine.systems.CollisionSystem
 
 
 -js build/nengine.js

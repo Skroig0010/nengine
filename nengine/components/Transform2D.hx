@@ -2,16 +2,10 @@ package nengine.components;
 import ecs.Component;
 import nengine.math.Vec2;
 
-typedef Transform2DBase = {
-    position:Vec2,
-    rotation:Float,
-    scale:Vec2
-}
-
 // transform component for vec2
 class Transform2D implements Component implements Transformable<Transform2DBase>
 {
-    public var name(default, null) = "Transform2D";
+    public var name(default, never) = "Transform2D";
     public var local:Transform2DBase;
     @:isVar public var global(get, set):Transform2DBase;
     public var parent:Transformable<Transform2DBase> = null;
