@@ -63,6 +63,12 @@ class CollisionSystem implements System
         if(colliderA.shape.onBroadPhase(colliderB.shape) &&
                 colliderA.shape.on(colliderB.shape))
         {
+            // 衝突解消
+            if (!(colliderA.isTrigger || colliderB.isTrigger))
+            {
+                colliderA.shape.resolveCollision(colliderB.shape);
+            }
+            // 解消後のentityを渡す
             colliderA.onCollide(entityB);
             colliderB.onCollide(entityA);
         }

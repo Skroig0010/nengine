@@ -7,4 +7,5 @@ interface Shape
 {
     public function onBroadPhase(other:Shape):Bool;
     public function on(other:Shape):Bool;
+    public function resolveCollisiton(other:Shape):Bool;
 }
