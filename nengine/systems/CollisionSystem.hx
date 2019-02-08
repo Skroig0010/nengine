@@ -60,13 +60,13 @@ class CollisionSystem implements System
     {
         var colliderA = cast (entityA.getComponent("Collider"), Collider);
         var colliderB = cast (entityB.getComponent("Collider"), Collider);
-        if(colliderA.shape.onBroadPhase(colliderB.shape) &&
-                colliderA.shape.on(colliderB.shape))
+        if(colliderA.shape.onBroadPhase(colliderB) &&
+                colliderA.shape.on(colliderB))
         {
             // 衝突解消
             if (!(colliderA.isTrigger || colliderB.isTrigger))
             {
-                colliderA.shape.resolveCollision(colliderB.shape);
+                colliderA.shape.resolveCollision(colliderB);
             }
             // 解消後のentityを渡す
             colliderA.onCollide(entityB);

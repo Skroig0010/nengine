@@ -10,7 +10,7 @@ class Collider implements Component
     public var layer(default, set):String;
     public var onLayerChanged = new Signal<{entity:Entity, collider:Collider}>();
     private var entity:Entity;
-    private var isTrigger:Bool;
+    public var isTrigger(default, null):Bool;
     public var onCollide:Entity->Void;
 
     public function new(shape:Shape, entity:Entity, layer:String, isTrigger:Bool)
