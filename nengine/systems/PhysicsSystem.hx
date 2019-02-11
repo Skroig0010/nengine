@@ -3,26 +3,31 @@ import ecs.Component;
 import ecs.Entity;
 import ecs.System;
 import ecs.World;
-import nengine.components.Collider;
+import nengine.components.RigidBody;
+import nengine.physics.ContactManager;
 using Lambda;
 
-class CollisionSystem implements System
+// box2dのworld
+class PhysicsSystem implements System
 {
     /*
-    ControllerはCollider.onCollideからデータを受け取り判断をする
+    ControllerはRigidBody.onCollideからデータを受け取り判断をする
 
     マップチップによる衝突判定の高速化
     AABB木や四分木などによる高速化
     この辺空間分割を自由に選べる感じの拡張性も持たせたい
     レイヤー名はStringで管理しているがIntにしたみもある
     */
+    public static var newFixture(default,never) = 0x0001;
 
     public var world:World;
     private var layerPair = new Array<{layerA:String, layerB:String}>();
     private var entityLayers = new Map<String, Array<Entity>>();
+    public var contactManager(default, null):ContactManager;
+    public var flags:Int;
 
     // ここ追加する場合はonComponentAdded等修正する必要が出てくるので注意
-    private var componentNames(null, never) = ["Collider"];
+    private var componentNames(null, never) = ["RigidBody"];
 
     public function new(world:World, layerPair:Array<{layerA:String, layerB:String}>)
     {
@@ -58,10 +63,11 @@ class CollisionSystem implements System
 
     private function hitCheck(entityA:Entity, entityB:Entity):Void
     {
-        var colliderA = cast (entityA.getComponent("Collider"), Collider);
-        var colliderB = cast (entityB.getComponent("Collider"), Collider);
-        if(colliderA.shape.onBroadPhase(colliderB) &&
-                colliderA.shape.on(colliderB))
+        var colliderA = cast (entityA.getComponent("RigidBody"), RigidBody);
+        var colliderB = cast (entityB.getComponent("RigidBody"), RigidBody);
+        /* colliderA.shapes.iter
+        if(colliderA.shapes.onBroadPhase(colliderB) &&
+                colliderA.shapes.on(colliderB))
         {
             // 衝突解消
             if (!(colliderA.isTrigger || colliderB.isTrigger))
@@ -72,9 +78,10 @@ class CollisionSystem implements System
             colliderA.onCollide(entityB);
             colliderB.onCollide(entityA);
         }
+        */
     }
 
-    private function setEntityLayers(entity:Entity, collider:Collider):Void
+    private function setEntityLayers(entity:Entity, collider:RigidBody):Void
     {
         entity.onComponentAdded.add(onComponentAdded);
         entity.onComponentRemoved.add(onComponentRemoved);
@@ -87,7 +94,7 @@ class CollisionSystem implements System
         collider.onLayerChanged.add(onLayerChanged);
     }
 
-    private function removeEntityLayers(entity:Entity, collider:Collider):Void
+    private function removeEntityLayers(entity:Entity, collider:RigidBody):Void
     {
         entity.onComponentAdded.remove(onComponentAdded);
         entity.onComponentRemoved.remove(onComponentRemoved);
@@ -98,13 +105,13 @@ class CollisionSystem implements System
 
     private function onEntityAdded(entity:Entity):Void
     {
-        var collider = cast (entity.getComponent("Collider"));
+        var collider = cast (entity.getComponent("RigidBody"));
         setEntityLayers(entity, collider);
     }
 
     private function onEntityRemoved(entity:Entity):Void
     {
-        var collider = cast (entity.getComponent("Collider"));
+        var collider = cast (entity.getComponent("RigidBody"));
         removeEntityLayers(entity, collider);
     }
 
@@ -112,17 +119,17 @@ class CollisionSystem implements System
     {
         if(!componentNames.has(msg.componentName)) return;
 
-        setEntityLayers(msg.entity, cast (msg.component, Collider));
+        setEntityLayers(msg.entity, cast (msg.component, RigidBody));
     }
 
     private function onComponentRemoved(msg:{entity:Entity, componentName:String, component:Component}):Void
     {
         if(!componentNames.has(msg.componentName)) return;
 
-        removeEntityLayers(msg.entity, cast (msg.component, Collider));
+        removeEntityLayers(msg.entity, cast (msg.component, RigidBody));
     }
 
-    private function onLayerChanged(msg:{entity:Entity, collider:Collider}):Void
+    private function onLayerChanged(msg:{entity:Entity, collider:RigidBody}):Void
     {
         removeEntityLayers(msg.entity, msg.collider);
         setEntityLayers(msg.entity, msg.collider);
