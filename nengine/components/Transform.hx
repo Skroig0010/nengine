@@ -3,12 +3,12 @@ import ecs.Component;
 import nengine.math.*;
 
 // transform component for vec2
-class Transform implements Component implements Transformable<Transform2>
+class Transform implements Component
 {
     public var name(default, never) = "Transform";
     public var local:Transform2;
     @:isVar public var global(get, set):Transform2;
-    public var parent:Transformable<Transform2> = null;
+    public var parent:Transform = null;
 
     public function new(?position:Vec2, ?rotation:Rot2)
     {
