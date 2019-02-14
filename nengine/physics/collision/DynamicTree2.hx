@@ -2,6 +2,7 @@ package nengine.physics.collision;
 import nengine.math.*;
 import nengine.physics.collision.shapes.AABB2;
 import nengine.physics.collision.RayCastInput2;
+import nengine.physics.dynamics.Fixture2;
 
 class DynamicTree2
 {

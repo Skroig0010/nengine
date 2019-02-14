@@ -16,7 +16,7 @@ class Fixture2
     public var restitution(default, default):Float;
     public var density(default, default):Float;
     public var isSensor:Float;
-    public var proxy(default, null):DynamicTree2Node;
+    public var proxies(default, null):List<DynamicTree2Node>;
     public var proxyCount(default, null):Int;
     public var aabb(default, null):AABB2;
 
@@ -33,19 +33,29 @@ class Fixture2
         proxyCount = 0;
     }
 
-    public function createProxy(broadPhase:BroadPhase2, transform:Transform2):Void
+    public function createProxies(broadPhase:BroadPhase2, transform:Transform2):Void
     {
-      aabb = shape.computeAABB(transform);
-      proxy = broadPhase.createProxy(aabb);
+        proxyCount = shape.childCount;
+
+        for(index in 0...proxyCount)
+        {
+            aabb = shape.computeAABB(transform);
+            var proxy = broadPhase.createProxy(aabb);
+            proxy.fixture = this;
+            proxy.childIndex = index;
+            proxies.add(proxy);
+        }
     }
 
     public function destroyProxy(broadPhase:BroadPhase2):Void
     {
-        if (proxy == null) {
-            return;
+        for(proxy in proxies){
+            if (proxy == null) {
+                return;
+            }
+            broadPhase.destroyProxy(proxy);
         }
-        broadPhase.destroyProxy(proxy);
-        proxy = null;
+        proxies = new List<DynamicTree2Node>();
     }
 
     inline public function testPoint(point:Vec2):Bool

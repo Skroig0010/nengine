@@ -1,6 +1,7 @@
 package nengine.physics.collision;
 import nengine.math.*;
 import nengine.physics.collision.shapes.AABB2;
+import nengine.physics.dynamics.Fixture2;
 
 class BroadPhase2
 {
@@ -46,13 +47,13 @@ class BroadPhase2
         return tree.getFatAABB(proxy);
     }
 
-    public function updatePairs(callback:Void->Void):Void
+    public function updatePairs(callback:Fixture2->Fixture2->Void):Void
     {
         pairCount = 0;
         var queryProxy:DynamicTree2Node;
         for (queryProxy in moveBuffer) {
 
-            function queryCallback(proxy) {
+            function queryCallback(proxy:DynamicTree2Node) {
                 if (proxy == queryProxy) return true;
                 if (pairCount == pairBuffer.length) {
                     pairBuffer[pairCount] = {
@@ -61,9 +62,8 @@ class BroadPhase2
                     };
                 }
                 var pair = pairBuffer[pairCount];
-                // TODO:↓ がおかしいはずなので正しい挙動を調査する
-                pair.proxyA = queryProxy;
-                pair.proxyB = proxy;
+                pair.proxyA = if(proxy.id < queryProxy.id) proxy else queryProxy;
+                pair.proxyB = if(proxy.id >= queryProxy.id) proxy else queryProxy;
                 ++pairCount;
                 return true;
             };
@@ -75,7 +75,7 @@ class BroadPhase2
         var i = 0;
         while (i < pairCount) {
             var primaryPair = pairBuffer[i];
-            callback();
+            callback(primaryPair.proxyA.fixture, primaryPair.proxyB.fixture);
             ++i;
             while (i < pairCount) {
                 var pair = pairBuffer[i];

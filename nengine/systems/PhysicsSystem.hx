@@ -4,7 +4,7 @@ import ecs.Entity;
 import ecs.System;
 import ecs.World;
 import nengine.components.RigidBody;
-import nengine.physics.ContactManager;
+import nengine.physics.dynamics.ContactManager;
 using Lambda;
 
 // box2dのworld
@@ -25,6 +25,8 @@ class PhysicsSystem implements System
     private var entityLayers = new Map<String, Array<Entity>>();
     public var contactManager(default, null):ContactManager;
     public var flags:Int;
+
+    public var isLocked(default, null):Bool;
 
     // ここ追加する場合はonComponentAdded等修正する必要が出てくるので注意
     private var componentNames(null, never) = ["RigidBody"];

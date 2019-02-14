@@ -24,7 +24,7 @@ nengine.physics.collision.DynamicTree2Node
 
 nengine.physics.dynamics.Fixture2
 
-nengine.physics.ContactManager
+nengine.physics.dynamics.ContactManager
 nengine.physics.Settings
 
 nengine.math.Rot2

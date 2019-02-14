@@ -4,6 +4,7 @@ import ecs.Component;
 import ecs.Signal;
 import nengine.components.Transform;
 import nengine.math.*;
+import nengine.physics.Settings;
 import nengine.physics.collision.shapes.AABB2;
 import nengine.physics.collision.shapes.Shape2;
 import nengine.physics.dynamics.Fixture2;
@@ -12,6 +13,7 @@ import nengine.systems.PhysicsSystem;
 // Box2Dのbody
 class RigidBody implements Component
 {
+    // constant values
     public static var isLandFlag(default, never) = 0x0001;
     public static var awakeFlag(default, never) = 0x0002;
     public static var allowSleepFlag(default, never) = 0x0004;
@@ -22,14 +24,15 @@ class RigidBody implements Component
     public static var kinematicBody(default, never) = 1;
     public static var dynamicBody(default, never) = 2;
 
+    // Component Data
     public var name(default, never) = "RigidBody";
-    public var fixtures(default, null) = new Array<Fixture2>();
     public var layer(default, set):String;
+    public var fixtures(default, null) = new Array<Fixture2>();
     public var onLayerChanged = new Signal<{entity:Entity, collider:RigidBody}>();
     private var entity:Entity;
-    public var isStatic(default, null):Bool;
-    public var onCollide:Entity->Void;
     public var physicsSystem:PhysicsSystem;
+    public var isStatic:Bool;
+    public var onCollide:Entity->Void;
     public var flags:Int;
 
     public var mass:Float;
@@ -37,8 +40,8 @@ class RigidBody implements Component
     public var inertia:Float;
     public var invInertia:Float;
     public var inertiaScale:Float;
-    public var sweep = new Sweep2();
     public var type:Int;
+    public var sweep = new Sweep2();
     public var linearVelocity = new Vec2();
     public var force = new Vec2();
     public var angularVelocity:Float;
@@ -56,7 +59,7 @@ class RigidBody implements Component
         var fixture = new Fixture2(shape, friction, restitution, density, entity, isSensor);
         if (flags & activeFlag != 0) {
             var broadPhase = physicsSystem.contactManager.broadPhase;
-            fixture.createProxy(broadPhase, cast (entity.getComponent("Transform"), Transform).global);
+            fixture.createProxies(broadPhase, cast (entity.getComponent("Transform"), Transform).global);
         }
         if (fixture.density > 0.0) {
             resetMassData();
@@ -64,6 +67,19 @@ class RigidBody implements Component
         fixtures.push(fixture);
         physicsSystem.flags |= PhysicsSystem.newFixture;
         return fixture;
+    }
+
+    public function createFixture2(shape:Shape2, density:Float = 0.0):Fixture2
+    {
+        return createFixture(shape, 0.2, 0.0, density, false);
+    }
+
+    public function destroyFixture(fixture:Fixture2):Void
+    {
+        Settings.assert(!physicsSystem.isLocked);
+        if (physicsSystem.isLocked) return;
+        var found = fixtures.remove(fixture);
+        Settings.assert(found);
     }
 
     public function resetMassData():Void
