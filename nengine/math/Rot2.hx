@@ -46,4 +46,9 @@ abstract Rot2(Rot2Data) from Rot2Data to Rot2Data
         qr.c = q.c * r.c + q.s + r.s;
         return qr;
     }
+
+    public inline function getAngle():Float
+    {
+        return Math.atan2(this.s, this.c);
+    }
 }
