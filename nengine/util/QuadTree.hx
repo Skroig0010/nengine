@@ -87,8 +87,8 @@ class QuadTree implements SpatialPartitioning
 
     private function addToTree(entity:Entity):Void
     {
-        var transform = cast(entity.getComponent("Transform"), Transform);
-        var body = cast(entity.getComponent("RigidBody"), RigidBody);
+        var transform = cast(entity.getComponent(Transform.componentName), Transform);
+        var body = cast(entity.getComponent(RigidBody.componentName), RigidBody);
         var aabb = body.getAABB(transform.global);
 
         var mortonA = getMortonNumber(aabb.upperBound);
@@ -148,7 +148,7 @@ class QuadTree implements SpatialPartitioning
     private function addToLinearTree(entity:Entity, id:Int):Void
     {
         if(id >= linearTree.length) throw "over QuadTree id";
-        var body = cast(entity.getComponent("RigidBody"), RigidBody);
+        var body = cast(entity.getComponent(RigidBody.componentName), RigidBody);
         body.cell.parentId = id;
         if(linearTree[id] == null)
         {
@@ -165,7 +165,7 @@ class QuadTree implements SpatialPartitioning
 
     private function removeFromLinearTree(entity:Entity):Void
     { 
-        var body = cast(entity.getComponent("RigidBody"), RigidBody);
+        var body = cast(entity.getComponent(RigidBody.componentName), RigidBody);
         body.cell.prev.next = body.cell.next;
         body.cell.next.prev = body.cell.prev;
     }

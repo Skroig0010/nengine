@@ -15,13 +15,13 @@ class AISystem implements System
 
     public function update(dt:Float)
     {
-        var entities = world.getEntities(["AIContainer"]);
+        var entities = world.getEntities([AIContainer.componentName]);
         entities.iter(aiUpdate);
     }
 
     private function aiUpdate(entity:Entity):Void
     {
-        var container = cast (entity.getComponent("AIContainer"), AIContainer);
+        var container = cast (entity.getComponent(AIContainer.componentName), AIContainer);
         var controller = container.controllers.find((controller)->controller.isActive());
         controller.update();
         container.entityOperator.update(controller);

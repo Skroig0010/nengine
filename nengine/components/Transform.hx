@@ -6,6 +6,7 @@ import nengine.math.*;
 class Transform implements Component
 {
     public var name(default, never) = "Transform";
+    public static inline var componentName = "Transform";
     public var local:Transform2;
     @:isVar public var global(get, set):Transform2;
     public var parent:Transform = null;

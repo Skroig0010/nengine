@@ -12,6 +12,7 @@ class RigidBody implements Component
 {
     // Component Data
     public var name(default, never) = "RigidBody";
+    public inline static var componentName = "RigidBody";
     public var shapes:Array<Shape>;
     public var cell(default, null):EntityCell;
     public var entity:Entity;
