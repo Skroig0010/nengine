@@ -2,25 +2,51 @@ package nengine.components;
 import ecs.Entity;
 import ecs.Component;
 import ecs.Signal;
-import nengine.box2d.dynamics.B2Body;
-import nengine.box2d.dynamics.B2BodyDef;
-import nengine.box2d.dynamics.B2FixtureDef;
-import nengine.box2d.dynamics.B2World;
 import nengine.math.*;
 import nengine.systems.PhysicsSystem;
+import nengine.components.shapes.*;
+import nengine.util.EntityCell;
 
 // Box2Dのbody
 class RigidBody implements Component
 {
     // Component Data
     public var name(default, never) = "RigidBody";
-    private var b2World:B2World;
-    private var body:B2Body;
+    public var shapes:Array<Shape>;
+    public var cell(default, null):EntityCell;
+    public var entity:Entity;
 
-    public function new(system:PhysicsSystem, bodyDef:B2BodyDef, fixtureDef:B2FixtureDef)
+    public function new(entity:Entity, shapes:Array<Shape>)
     {
-        b2World = system.b2World;
-        body = b2World.CreateBody(bodyDef);
-        body.CreateFixture(fixtureDef);
+        this.entity = entity;
+        this.shapes = shapes.map((shape) -> shape.clone());
+        cell = new EntityCell(entity);
+    }
+
+    public function getAABB(transform:Transform2):AABB2
+    {
+        var upperBound:Vec2 = null;
+        var lowerBound:Vec2 = null;
+        for(shape in shapes)
+        {
+            var shapeAABB = shape.computeAABB(transform);
+            if(upperBound == null)
+            {
+                upperBound = shapeAABB.upperBound;
+            }
+            else
+            {
+                upperBound = Vec2.min(shapeAABB.upperBound, upperBound);
+            }
+            if(lowerBound == null)
+            {
+                lowerBound = shapeAABB.lowerBound;
+            }
+            else
+            {
+                lowerBound = Vec2.max(shapeAABB.lowerBound, lowerBound);
+            }
+        }
+        return new AABB2(upperBound, lowerBound);
     }
 }

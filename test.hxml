@@ -1,0 +1,7 @@
+-lib ecs
+-lib utest
+
+-main test.TestRunner
+test.util.QuadTreeTest
+-js testbuild/test.js
+-cmd node testbuild/test.js

@@ -24,6 +24,7 @@ nengine.components.AIContainer
 nengine.components.RigidBody
 nengine.components.Transform
 
+nengine.math.AABB2
 nengine.math.Rot2
 nengine.math.Rot2Data
 nengine.math.Transform2
@@ -33,5 +34,9 @@ nengine.math.Vec2Data
 
 nengine.systems.AISystem
 nengine.systems.PhysicsSystem
+
+nengine.util.EntityCell
+nengine.util.QuadTree
+nengine.util.SpatialPartitioning
 
 -js build/nengine.js
