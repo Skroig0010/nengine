@@ -35,8 +35,10 @@ nengine.math.Vec2Data
 nengine.systems.AISystem
 nengine.systems.PhysicsSystem
 
-nengine.util.EntityCell
-nengine.util.QuadTree
-nengine.util.SpatialPartitioning
+nengine.physics.collision.Collision
+nengine.physics.collision.EntityCell
+nengine.physics.collision.Manifold
+nengine.physics.collision.ManifoldType
+nengine.physics.collision.QuadTree
 
 -js build/nengine.js

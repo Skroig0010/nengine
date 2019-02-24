@@ -5,14 +5,14 @@ import ecs.Signal;
 import nengine.math.*;
 import nengine.systems.PhysicsSystem;
 import nengine.components.shapes.*;
-import nengine.util.EntityCell;
+import nengine.physics.collision.EntityCell;
 
 // Box2Dのbody
 class RigidBody implements Component
 {
     // Component Data
-    public var name(default, never) = "RigidBody";
     public inline static var componentName = "RigidBody";
+    public var name(default, never) = componentName;
     public var shapes:Array<Shape>;
     public var cell(default, null):EntityCell;
     public var entity:Entity;

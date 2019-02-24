@@ -12,6 +12,9 @@ class PhysicsSystem implements System
 
     public function update(dt:Float)
     {
+        // ゲーム毎に以下を実装すればいい
+        // 衝突検出
+        // 衝突応答
     }
 
 }

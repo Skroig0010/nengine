@@ -5,8 +5,8 @@ import nengine.math.*;
 // transform component for vec2
 class Transform implements Component
 {
-    public var name(default, never) = "Transform";
     public static inline var componentName = "Transform";
+    public var name(default, never) = componentName;
     public var local:Transform2;
     @:isVar public var global(get, set):Transform2;
     public var parent:Transform = null;

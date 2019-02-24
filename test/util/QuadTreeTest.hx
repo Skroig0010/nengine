@@ -5,9 +5,9 @@ import ecs.Entity;
 import nengine.math.*;
 import nengine.components.*;
 import nengine.components.shapes.*;
-import nengine.util.QuadTree;
+import nengine.physics.collision.QuadTree;
 
-@:access(nengine.util.QuadTree)
+@:access(nengine.physics.collision.QuadTree)
 class QuadTreeTest extends Test
 {
     var tree:QuadTree;
@@ -49,6 +49,16 @@ class QuadTreeTest extends Test
         Assert.equals(45, tree.getMortonNumber(new Vec2(3,6)));
     }
 
+    public function testGetLevel()
+    {
+        Assert.equals(0, tree.getLevel(0x0));
+        Assert.equals(1, tree.getLevel(0x1));
+        Assert.equals(1, tree.getLevel(0x2));
+        Assert.equals(1, tree.getLevel(0x3));
+        Assert.equals(2, tree.getLevel(0x4));
+        Assert.equals(8, tree.getLevel(0xffff));
+    }
+
     public function testAddToTree()
     {
         var t = new QuadTree(2, new AABB2(new Vec2(0, 0), new Vec2(40, 40)));
@@ -79,19 +89,19 @@ class QuadTreeTest extends Test
         Assert.equals(null, t.linearTree[20]);
     }
 
-    public function testCheckHit()
+    public function testCheckHitAll()
     {
-        var hitList = new Map<Entity, Entity>();
+        var hitList = new Array<{e1:Entity, e2:Entity}>();
         var t = new QuadTree(2, new AABB2(new Vec2(0, 0), new Vec2(40, 40)));
         var e1 = makeCircleEntity(new Vec2(30, 30), 5);
         var e2 = makeCircleEntity(new Vec2(25, 25), 10);
         t.onEntityAdded(e1);
         t.onEntityAdded(e2);
-        t.checkHit((entity1, entity2)->
+        t.checkHitAll((entity1, entity2)->
                 {
-                    hitList.set(entity1, entity2);
+                    hitList.push({e1:entity1, e2:entity2});
                 });
-        Assert.equals(e2, hitList.get(e1));
+        Assert.equals([], hitList);
     }
 
     function makeCircleEntity(position:Vec2, radius:Float):Entity

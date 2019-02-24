@@ -11,7 +11,9 @@ abstract Vec2(Vec2Data) from Vec2Data to Vec2Data
                 if(y != null)y else 0);
     }
 
-    public inline function length() return Math.sqrt(this.x*this.x + this.y*this.y);
+    public inline function lengthSq() return this.x * this.x + this.y * this.y;
+
+    public inline function length() return Math.sqrt(cast(this, Vec2).lengthSq());
 
     public inline function setZero():Void
     {

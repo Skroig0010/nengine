@@ -5,8 +5,8 @@ import nengine.components.ai.*;
 
 class AIContainer implements Component
 {
-    public var name(default, never) = "AIContainer";
     public inline static var componentName = "AIContainer";
+    public var name(default, never) = componentName;
 
     public var controllers(default, null):List<Controller>;
     public var entityOperator(default, null):EntityOperator;
