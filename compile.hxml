@@ -20,6 +20,10 @@ nengine.components.ai.ControllerInput
 nengine.components.ai.ControllerStickInput
 nengine.components.ai.EntityOperator
 
+nengine.components.shapes.CircleShape
+nengine.components.shapes.PolygonShape
+nengine.components.shapes.Shape
+
 nengine.components.AIContainer
 nengine.components.RigidBody
 nengine.components.Transform
@@ -32,13 +36,17 @@ nengine.math.Transform2Data
 nengine.math.Vec2
 nengine.math.Vec2Data
 
-nengine.systems.AISystem
-nengine.systems.PhysicsSystem
-
+nengine.physics.collision.ClipVertex
 nengine.physics.collision.Collision
+nengine.physics.collision.ContactFeature
+nengine.physics.collision.ContactType
 nengine.physics.collision.EntityCell
 nengine.physics.collision.Manifold
+nengine.physics.collision.ManifoldPoint
 nengine.physics.collision.ManifoldType
 nengine.physics.collision.QuadTree
+
+nengine.systems.AISystem
+nengine.systems.PhysicsSystem
 
 -js build/nengine.js

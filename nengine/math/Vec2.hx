@@ -15,6 +15,9 @@ abstract Vec2(Vec2Data) from Vec2Data to Vec2Data
 
     public inline function length() return Math.sqrt(cast(this, Vec2).lengthSq());
 
+    public static inline function distanceSq(v1:Vec2, v2:Vec2) return (v1.x - v2.x) * (v1.x - v2.x) + (v1.y - v2.y) * (v1.y - v2.y);
+    public static inline function distance(v1:Vec2, v2:Vec2) return Math.sqrt(distanceSq(v1, v2));
+
     public inline function setZero():Void
     {
         this.x = 0;

@@ -21,6 +21,7 @@ class QuadTree
             linearTree.push(null);
         }
     }
+
     // RigidBodyのFamilyにEntityが追加されたときに呼ぶメソッド
     public function onEntityAdded(entity:Entity):Void
     {
@@ -43,15 +44,17 @@ class QuadTree
     // 4分木内のオブジェクト全て対与えられたEntityとの衝突判定を行う
     public function checkHit(entity:Entity, collisionCheck:Entity->Entity->Void):Void
     {
+        // おそらくバグってる
         var treeIndex = getTreeIndex(entity);
         var depth = getLevel(treeIndex);
+        treeIndex -= getSpaceNumber(depth - 1);
         // indexより上位の空間と衝突判定
         var currentTreeIndex = treeIndex;
-        while(currentTreeIndex != 0)
+        for(minusDepth in 0... depth)
         {
             currentTreeIndex = currentTreeIndex >> 2;
             // currentTreeIndex内のEntityとの衝突判定 
-            checkHitList(collisionCheck, entity, linearTree[currentTreeIndex]);
+            checkHitList(collisionCheck, entity, linearTree[currentTreeIndex + getSpaceNumber(depth - minusDepth - 1)]);
         }
 
         // index含む下位の空間があれば衝突判定
@@ -60,16 +63,16 @@ class QuadTree
 
     private function checkHit2(collisionCheck:Entity->Entity->Void, entity:Entity, currentTreeIndex:Int, depth:Int):Void
     {
-        checkHitList(collisionCheck, entity, linearTree[currentTreeIndex]);
+        checkHitList(collisionCheck, entity, linearTree[currentTreeIndex + getSpaceNumber(depth - 1)]);
 
-        var checkNum = (currentTreeIndex << 2) + getSpaceNumber(depth - 1);
+        // 下位空間が範囲外なら終了
+        if(maxLevel <= depth) return;
 
-        // 下位空間のindexが範囲外なら終了
-        if(linearTree.length <= checkNum) return;
+        var checkNum = currentTreeIndex << 2;
 
         for(index in 0...4)
         {
-        checkHit2(collisionCheck, entity, checkNum + index, depth + 1);
+            checkHit2(collisionCheck, entity, checkNum + index, depth + 1);
         }
     }
 
@@ -84,7 +87,7 @@ class QuadTree
     private function checkHitAll2(collisionCheck:Entity->Entity->Void, currentTreeIndex:Int, indexStack:GenericStack<Int>, depth:Int):Void
     {
         // 現在の空間の最初のcellを取得
-        var cellA = linearTree[currentTreeIndex];
+        var cellA = linearTree[currentTreeIndex + getSpaceNumber(depth - 1)];
 
         while(cellA != null){
             // 同じ空間内のEntityとの衝突判定
@@ -101,13 +104,13 @@ class QuadTree
             cellA = cellA.next;
         }
 
-        var checkNum = (currentTreeIndex << 2) + getSpaceNumber(depth - 1);
+        // 下位空間が範囲外なら終了
+        if(maxLevel <= depth) return;
 
-        // 下位空間のindexが範囲外なら終了
-        if(linearTree.length <= checkNum) return;
+        var checkNum = currentTreeIndex << 2;
 
         // スタックに現在の空間をpush
-        indexStack.add(currentTreeIndex);
+        indexStack.add(currentTreeIndex + getSpaceNumber(depth - 1));
 
         // 下位空間の探索
         for(index in 0...4)

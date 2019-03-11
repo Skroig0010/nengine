@@ -91,7 +91,7 @@ class QuadTreeTest extends Test
 
     public function testCheckHitAll()
     {
-        var hitList = new Array<{e1:Entity, e2:Entity}>();
+        var hitList = new Array<Entity>();
         var t = new QuadTree(2, new AABB2(new Vec2(0, 0), new Vec2(40, 40)));
         var e1 = makeCircleEntity(new Vec2(30, 30), 5);
         var e2 = makeCircleEntity(new Vec2(25, 25), 10);
@@ -99,9 +99,13 @@ class QuadTreeTest extends Test
         t.onEntityAdded(e2);
         t.checkHitAll((entity1, entity2)->
                 {
-                    hitList.push({e1:entity1, e2:entity2});
+                    hitList.push(entity1);
+                    hitList.push(entity2);
                 });
-        Assert.equals([], hitList);
+        for(e in [e2, e1])
+        {
+        Assert.equals(e, hitList.pop());
+        }
     }
 
     function makeCircleEntity(position:Vec2, radius:Float):Entity

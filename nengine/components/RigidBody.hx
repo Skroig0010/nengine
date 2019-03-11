@@ -16,6 +16,36 @@ class RigidBody implements Component
     public var shapes:Array<Shape>;
     public var cell(default, null):EntityCell;
     public var entity:Entity;
+    @:isVar public var invMass(default, set):Float;
+    @:isVar public var mass(default, set):Float; 
+    private function set_invMass(invMass:Float):Float
+    {
+        if(invMass != 0) 
+        {
+            mass = 1 / invMass;
+        }
+        else
+        {
+            mass = Math.POSITIVE_INFINITY;
+        }
+
+        this.invMass = invMass;
+        return invMass;
+    }
+
+    private function set_mass(mass:Float):Float
+    {
+        if(mass != 0)
+        {
+            invMass = 1 / mass;
+        }
+        else
+        {
+            invMass = Math.POSITIVE_INFINITY;
+        }
+        this.mass = mass;
+        return mass;
+    }
 
     public function new(entity:Entity, shapes:Array<Shape>)
     {
