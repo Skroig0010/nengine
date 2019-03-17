@@ -3,6 +3,7 @@ import nengine.math.*;
 
 class CircleShape implements Shape
 {
+    public var type(default, never) = ShapeType.Circle;
     public var radius:Float;
     public var position:Vec2;
 

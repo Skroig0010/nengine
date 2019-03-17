@@ -8,6 +8,15 @@ class Collision
 {
     public static var maxManifoldPoints(default, never) = 2;
 
+    public static inline function collideAABBs(aabbA:AABB2,
+            aabbB:AABB2):Bool
+    {
+        return aabbA.upperBound.x < aabbB.lowerBound.x &&
+            aabbA.upperBound.y < aabbB.lowerBound.y &&
+            aabbB.upperBound.x < aabbA.lowerBound.x &&
+            aabbB.upperBound.y < aabbA.lowerBound.y;
+    }
+
     public static function collideCircles(
             circleA:CircleShape, transformA:Transform2, 
             circleB:CircleShape, transformB:Transform2):Manifold

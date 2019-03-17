@@ -25,6 +25,7 @@ nengine.components.shapes.PolygonShape
 nengine.components.shapes.Shape
 
 nengine.components.AIContainer
+nengine.components.Collider
 nengine.components.RigidBody
 nengine.components.Transform
 

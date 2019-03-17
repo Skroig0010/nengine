@@ -22,7 +22,13 @@ class QuadTree
         }
     }
 
-    // RigidBodyのFamilyにEntityが追加されたときに呼ぶメソッド
+    public function updateEntity(entity:Entity):Void
+    {
+        onEntityRemoved(entity);
+        onEntityAdded(entity);
+    }
+
+    // ColliderのFamilyにEntityが追加されたときに呼ぶメソッド
     public function onEntityAdded(entity:Entity):Void
     {
         addToLinearTree(entity, getTreeIndex(entity));
@@ -44,7 +50,6 @@ class QuadTree
     // 4分木内のオブジェクト全て対与えられたEntityとの衝突判定を行う
     public function checkHit(entity:Entity, collisionCheck:Entity->Entity->Void):Void
     {
-        // おそらくバグってる
         var treeIndex = getTreeIndex(entity);
         var depth = getLevel(treeIndex);
         treeIndex -= getSpaceNumber(depth - 1);
@@ -134,7 +139,7 @@ class QuadTree
     private function getTreeIndex(entity:Entity):Int
     {
         var transform = cast(entity.getComponent(Transform.componentName), Transform);
-        var body = cast(entity.getComponent(RigidBody.componentName), RigidBody);
+        var body = cast(entity.getComponent(Collider.componentName), Collider);
         var aabb = body.getAABB(transform.global);
 
         var mortonA = getMortonNumber(aabb.upperBound);
@@ -205,7 +210,8 @@ class QuadTree
     private function addToLinearTree(entity:Entity, id:Int):Void
     {
         if(id >= linearTree.length) throw "over QuadTree id";
-        var body = cast(entity.getComponent(RigidBody.componentName), RigidBody);
+        var body = cast(entity.getComponent(Collider.componentName), Collider);
+        body.cell.parentId = id;
         if(linearTree[id] == null)
         {
             linearTree[id] = body.cell;
@@ -221,8 +227,10 @@ class QuadTree
 
     private function removeFromLinearTree(entity:Entity):Void
     { 
-        var body = cast(entity.getComponent(RigidBody.componentName), RigidBody);
-        body.cell.prev.next = body.cell.next;
-        body.cell.next.prev = body.cell.prev;
+        var body = cast(entity.getComponent(Collider.componentName), Collider);
+        if(body.cell == linearTree[body.cell.parentId])linearTree[body.cell.parentId] = body.cell.next;
+        if(body.cell.prev != null)body.cell.prev.next = body.cell.next;
+        if(body.cell.next != null)body.cell.next.prev = body.cell.prev;
+        body.cell.prev = body.cell.next = null;
     }
 }

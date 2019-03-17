@@ -112,7 +112,7 @@ class QuadTreeTest extends Test
     {
         var entity = new Entity();
         entity.addComponent(new Transform(position, new Rot2()));
-        entity.addComponent(new RigidBody(entity, [new CircleShape(new Vec2(), radius)]));
+        entity.addComponent(new Collider(entity, [new CircleShape(new Vec2(), radius)]));
         return entity;
     }
 

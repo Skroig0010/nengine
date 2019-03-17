@@ -7,9 +7,10 @@ class Transform implements Component
 {
     public static inline var componentName = "Transform";
     public var name(default, never) = componentName;
-    public var local:Transform2;
+    public var local(default, set):Transform2;
     @:isVar public var global(get, set):Transform2;
     public var parent:Transform = null;
+    public var positionUpdated = false;
 
     public function new(?position:Vec2, ?rotation:Rot2)
     {
@@ -20,10 +21,11 @@ class Transform implements Component
     {
         return if(parent != null)
         {
+            var global = parent.global;
             new Transform2(
-                parent.global.position + parent.global.rotation * local.position,
-                local.rotation * parent.global.rotation
-                );
+                    global * local.position,
+                    local.rotation * global.rotation
+                    );
         }
         else
         {
@@ -31,14 +33,22 @@ class Transform implements Component
         }
     }
 
+    private function set_local(transform:Transform2):Transform2
+    {
+        positionUpdated = true;
+        return this.local = transform;
+    }
+
     private function set_global(transform:Transform2):Transform2
     {
+        positionUpdated = true;
         return local = if(parent != null)
         {
+            var global = parent.global;
             new Transform2(
-                Vec2.rotVecT(parent.global.rotation, transform.position - parent.global.position),
-                Rot2.mulT(transform.rotation, parent.global.rotation)
-                );
+                    Transform2.mulXT(global, transform.position),
+                    Rot2.mulT(transform.rotation, global.rotation)
+                    );
         }
         else
         {

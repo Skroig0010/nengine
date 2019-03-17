@@ -3,14 +3,28 @@ import nengine.math.*;
 
 class PolygonShape implements Shape
 {
-
+    public var type(default, never) = ShapeType.Polygon;
     public var vertices = new Array<Vec2>();
     public var normals = new Array<Vec2>();
 
-    public function new(vertices:Array<Vec2>, normals:Array<Vec2>)
+    private function new(vertices:Array<Vec2>, normals:Array<Vec2>)
     {
         this.vertices = vertices;
         this.normals = normals;
+    }
+
+    public static function makeBox(width:Float, height:Float):PolygonShape
+    {
+        var vertices = [new Vec2(-width/2, -height/2),
+                new Vec2(width/2, -height/2),
+                new Vec2(-width/2, height/2),
+                new Vec2(width/2, height/2)];
+        var normals = [new Vec2(0.0, -1.0),
+                new Vec2(1.0, 0.0),
+                new Vec2(0.0, 1.0),
+                new Vec2(-1.0, 0.0)];
+        var polygon = new PolygonShape(vertices, normals);
+        return polygon;
     }
 
     public static function makeBoxTransformed(transform:Transform2, width:Float, height:Float):PolygonShape
@@ -44,7 +58,7 @@ class PolygonShape implements Shape
         {
             var v = transform * vertices[index];
             upper = Vec2.min(v, upper);
-            lower = Vec2.min(v, lower);
+            lower = Vec2.max(v, lower);
         }
         return new AABB2(upper, lower);
     }
@@ -132,7 +146,7 @@ class PolygonShape implements Shape
 
             hullPoint = checkPoint;
         }
-        while(hullPoint == rightPoint);
+        while(hullPoint != rightPoint);
 
         if(hull.length < 3)
         {
