@@ -1,7 +1,7 @@
 package nengine.physics.collision;
 import ecs.Entity;
 import nengine.components.*;
-import nengine.components.shapes.*;
+import nengine.physics.collision.shapes.*;
 import nengine.math.*;
 
 class Collision
@@ -28,10 +28,10 @@ class Collision
 
         if(distSq > radius * radius)
         {
-            return new Manifold(ManifoldType.None, [], null, null);
+            return Manifold.None;
         }
 
-        return new Manifold(ManifoldType.Circles, 
+        return Manifold.Circles(
                 [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})],
                 new Vec2(), circleA.position.copy());
     }
@@ -56,7 +56,7 @@ class Collision
 
             if(s > radius)
             {
-                return new Manifold(ManifoldType.None, [], null, null);
+                return Manifold.None;
             }
             
             if(s > separation)
@@ -73,7 +73,7 @@ class Collision
 
         if(separation < 0)
         {
-            return new Manifold(ManifoldType.FaceA, 
+            return Manifold.FaceA(
                     [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})], 
                     normals[normalIndex], 0.5 * (vertex1 + vertex2));
         }
@@ -84,7 +84,7 @@ class Collision
         {
             if(Vec2.distanceSq(cLocal, vertex1) <= radius * radius)
             {
-            return new Manifold(ManifoldType.FaceA, 
+            return Manifold.FaceA(
                     [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})], 
                     (cLocal - vertex1).normalize(), vertex1);
             }
@@ -93,7 +93,7 @@ class Collision
         {
             if(Vec2.distanceSq(cLocal, vertex2) <= radius * radius)
             {
-            return new Manifold(ManifoldType.FaceA, 
+            return Manifold.FaceA(
                     [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})], 
                     (cLocal - vertex2).normalize(), vertex2);
             }
@@ -104,12 +104,12 @@ class Collision
             var s = (cLocal - faceCenter).dot(normals[vertIndex1]);
             if(s <= radius)
             {
-            return new Manifold(ManifoldType.FaceA, 
+            return Manifold.FaceA(
                     [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})], 
                     normals[vertIndex1], faceCenter);
             }
         }
-        return new Manifold(ManifoldType.None, [], null, null);
+        return Manifold.None;
     }
 
     public static function collidePolygons(
@@ -119,18 +119,18 @@ class Collision
         var temp1 = findMaxSeparation(polyA, transformA, polyB, transformB);
         var edgeA = temp1.bestIndex;
         var separationA = temp1.maxSeparation;
-        if(separationA > 0) return new Manifold(ManifoldType.None, [], null, null);
+        if(separationA > 0) return Manifold.None;
 
         temp1 = findMaxSeparation(polyB, transformB, polyA, transformA);
         var edgeB = temp1.bestIndex;
         var separationB = temp1.maxSeparation;
-        if(separationB > 0) return new Manifold(ManifoldType.None, [], null, null);
+        if(separationB > 0) return Manifold.None;
 
         var poly1, poly2:PolygonShape;
         var transform1, transform2:Transform2;
         var edge1:Int;
         var flip:Bool;
-        var type:ManifoldType;
+        var faceA:Bool;
 
         if(separationB > separationA)
         {
@@ -139,7 +139,7 @@ class Collision
             transform1 = transformB;
             transform2 = transformA;
             edge1 = edgeB;
-            type = ManifoldType.FaceB;
+            faceA = false;
             flip = true;
         }
         else
@@ -149,7 +149,7 @@ class Collision
             transform1 = transformA;
             transform2 = transformB;
             edge1 = edgeA;
-            type = ManifoldType.FaceA;
+            faceA = true;
             flip = false;
         }
 
@@ -181,10 +181,10 @@ class Collision
         var sideOffset2 = tangent.dot(v12);
 
         var clipPoints = clipSegmentToLine(incidentEdges, -tangent, sideOffset1, iv1);
-        if(clipPoints.length < 2) return new Manifold(type, [], new Vec2(), new Vec2());
+        if(clipPoints.length < 2) return Manifold.None;
 
         clipPoints = clipSegmentToLine(clipPoints, tangent, sideOffset2, iv2);
-        if(clipPoints.length < 2) return new Manifold(type, [], new Vec2(), new Vec2());
+        if(clipPoints.length < 2) return Manifold.None;
 
         var points = new Array<ManifoldPoint>();
         for(index in 0...maxManifoldPoints)
@@ -200,7 +200,7 @@ class Collision
             }
             points.push(mp);
         }
-        return new Manifold(type, points, localNormal, planePoint);
+        return if(faceA)Manifold.FaceA(points, localNormal, planePoint) else Manifold.FaceB(points, localNormal, planePoint);
     }
 
     private static function clipSegmentToLine(vIn:Array<ClipVertex>, normal:Vec2, offset:Float, vertexIndexA:Int):Array<ClipVertex>

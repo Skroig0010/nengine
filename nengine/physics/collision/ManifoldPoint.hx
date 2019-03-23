@@ -15,4 +15,5 @@ class ManifoldPoint
         this.tangentImpulse = tangentImpulse;
         this.contactFeature = contactFeature;
     }
+
 }

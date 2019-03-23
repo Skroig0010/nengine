@@ -1,4 +1,5 @@
-package nengine.components.shapes;
+package nengine.physics.collision.shapes;
+import nengine.components.Collider;
 import nengine.math.*;
 
 class PolygonShape implements Shape
@@ -6,14 +7,20 @@ class PolygonShape implements Shape
     public var type(default, never) = ShapeType.Polygon;
     public var vertices = new Array<Vec2>();
     public var normals = new Array<Vec2>();
+    public var isSensor:Bool;
+    public var cell(default, null):ShapeCell;
+    public var id(default, null):Int;
 
-    private function new(vertices:Array<Vec2>, normals:Array<Vec2>)
+    private function new(vertices:Array<Vec2>, normals:Array<Vec2>, collider:Collider)
     {
         this.vertices = vertices;
         this.normals = normals;
+        this.isSensor = false;
+        cell = new ShapeCell(this, collider);
+        id = ShapeIdCounter.getId();
     }
 
-    public static function makeBox(width:Float, height:Float):PolygonShape
+    public static function makeBox(width:Float, height:Float, collider:Collider):PolygonShape
     {
         var vertices = [new Vec2(-width/2, -height/2),
                 new Vec2(width/2, -height/2),
@@ -23,11 +30,11 @@ class PolygonShape implements Shape
                 new Vec2(1.0, 0.0),
                 new Vec2(0.0, 1.0),
                 new Vec2(-1.0, 0.0)];
-        var polygon = new PolygonShape(vertices, normals);
+        var polygon = new PolygonShape(vertices, normals, collider);
         return polygon;
     }
 
-    public static function makeBoxTransformed(transform:Transform2, width:Float, height:Float):PolygonShape
+    public static function makeBoxTransformed(transform:Transform2, width:Float, height:Float, collider:Collider):PolygonShape
     {
         var vertices = [new Vec2(-width/2, -height/2),
                 new Vec2(width/2, -height/2),
@@ -37,16 +44,16 @@ class PolygonShape implements Shape
                 new Vec2(1.0, 0.0),
                 new Vec2(0.0, 1.0),
                 new Vec2(-1.0, 0.0)].map((vertex) -> return transform * vertex);
-        var polygon = new PolygonShape(vertices, normals);
+        var polygon = new PolygonShape(vertices, normals, collider);
         return polygon;
     }
 
-    public static function makeConvexHull(vertices:Array<Vec2>):PolygonShape
+    public static function makeConvexHull(vertices:Array<Vec2>, collider:Collider):PolygonShape
     {
         var separated = getSeparatedPoints(vertices);
         var vertices = getConvexHull(separated);
         var normals = computeNormal(vertices);
-        return new PolygonShape(vertices, normals);
+        return new PolygonShape(vertices, normals, collider);
     }
 
     public function computeAABB(transform:Transform2):AABB2
@@ -63,11 +70,11 @@ class PolygonShape implements Shape
         return new AABB2(upper, lower);
     }
 
-    public function clone():PolygonShape
+    public function clone(collider:Collider):PolygonShape
     {
         var vertices = this.vertices.copy();
         var normals = this.normals.copy();
-        return new PolygonShape(vertices, normals);
+        return new PolygonShape(vertices, normals, collider);
     }
 
     private static function getSeparatedPoints(vertices:Array<Vec2>):Array<Vec2>

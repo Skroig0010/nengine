@@ -1,4 +1,4 @@
-package nengine.components.shapes;
+package nengine.physics.collision.shapes;
 
 enum ShapeType
 {

@@ -20,10 +20,6 @@ nengine.components.ai.ControllerInput
 nengine.components.ai.ControllerStickInput
 nengine.components.ai.EntityOperator
 
-nengine.components.shapes.CircleShape
-nengine.components.shapes.PolygonShape
-nengine.components.shapes.Shape
-
 nengine.components.AIContainer
 nengine.components.Collider
 nengine.components.RigidBody
@@ -37,15 +33,32 @@ nengine.math.Transform2Data
 nengine.math.Vec2
 nengine.math.Vec2Data
 
+nengine.physics.collision.shapes.CircleShape
+nengine.physics.collision.shapes.PolygonShape
+nengine.physics.collision.shapes.Shape
+nengine.physics.collision.shapes.ShapeIdCounter
+nengine.physics.collision.shapes.ShapeType
+
+nengine.physics.collision.BroadPhase
 nengine.physics.collision.ClipVertex
 nengine.physics.collision.Collision
+nengine.physics.collision.ContactEdge
 nengine.physics.collision.ContactFeature
 nengine.physics.collision.ContactType
-nengine.physics.collision.EntityCell
+nengine.physics.collision.HitCallBack
 nengine.physics.collision.Manifold
+nengine.physics.collision.ManifoldFunction
 nengine.physics.collision.ManifoldPoint
-nengine.physics.collision.ManifoldType
 nengine.physics.collision.QuadTree
+nengine.physics.collision.ShapeCell
+
+nengine.physics.dynamics.contacts.CircleContact
+nengine.physics.dynamics.contacts.Contact
+nengine.physics.dynamics.contacts.ContactListener
+nengine.physics.dynamics.contacts.PolygonAndCircleContact
+nengine.physics.dynamics.contacts.PolygonContact
+
+nengine.physics.dynamics.ContactManager
 
 nengine.systems.AISystem
 nengine.systems.PhysicsSystem
