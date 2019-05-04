@@ -1,8 +1,12 @@
-package nengine.components.shapes;
+package nengine.physics.collision.shapes;
 import nengine.math.*;
+import nengine.physics.collision.ShapeCell;
+import nengine.components.RigidBody;
 
 class CircleShape implements Shape
 {
+    public var body:RigidBody;
+    public var cell(default, null):ShapeCell;
     public var radius:Float;
     public var position:Vec2;
 
@@ -10,6 +14,7 @@ class CircleShape implements Shape
     {
         this.position = position;
         this.radius = radius;
+        cell = new ShapeCell(this);
     }
 
     public function computeAABB(transform:Transform2):AABB2
@@ -20,8 +25,4 @@ class CircleShape implements Shape
         return new AABB2(upperBound, lowerBound);
     }
 
-    public function clone():CircleShape
-    {
-        return new CircleShape(position.copy(), radius);
-    }
 }

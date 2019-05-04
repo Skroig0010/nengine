@@ -1,28 +1,9 @@
 -lib ecs
 
-nengine.box2d.collision.shapes.B2CircleShape
-nengine.box2d.collision.shapes.B2PolygonShape
-nengine.box2d.collision.shapes.B2Shape
-
-nengine.box2d.common.math.B2Mat22
-nengine.box2d.common.math.B2Transform
-nengine.box2d.common.math.B2Vec2
-
-nengine.box2d.dynamics.B2Body
-nengine.box2d.dynamics.B2BodyDef
-nengine.box2d.dynamics.B2DebugDraw
-nengine.box2d.dynamics.B2Fixture
-nengine.box2d.dynamics.B2FixtureDef
-nengine.box2d.dynamics.B2World
-
 nengine.components.ai.Controller
 nengine.components.ai.ControllerInput
 nengine.components.ai.ControllerStickInput
 nengine.components.ai.EntityOperator
-
-nengine.components.shapes.CircleShape
-nengine.components.shapes.PolygonShape
-nengine.components.shapes.Shape
 
 nengine.components.AIContainer
 nengine.components.RigidBody
@@ -36,11 +17,16 @@ nengine.math.Transform2Data
 nengine.math.Vec2
 nengine.math.Vec2Data
 
+nengine.physics.collision.shapes.CircleShape
+nengine.physics.collision.shapes.PolygonShape
+nengine.physics.collision.shapes.Shape
+
 nengine.physics.collision.ClipVertex
 nengine.physics.collision.Collision
 nengine.physics.collision.ContactFeature
 nengine.physics.collision.ContactType
-nengine.physics.collision.EntityCell
+nengine.physics.collision.ShapeCell
+nengine.physics.collision.HitCallback
 nengine.physics.collision.Manifold
 nengine.physics.collision.ManifoldPoint
 nengine.physics.collision.ManifoldType

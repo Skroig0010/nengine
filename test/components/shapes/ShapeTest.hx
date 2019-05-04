@@ -4,9 +4,9 @@ import utest.Assert;
 import ecs.Entity;
 import nengine.math.*;
 import nengine.components.*;
-import nengine.components.shapes.*;
+import nengine.physics.collision.shapes.*;
 
-@:access(nengine.components.shapes.CircleShape)
+@:access(nengine.physics.collision.shapes.CircleShape)
 class ShapeTest extends Test
 {
     public function testCircleAABB()

@@ -4,8 +4,8 @@ import ecs.Component;
 import ecs.Signal;
 import nengine.math.*;
 import nengine.systems.PhysicsSystem;
-import nengine.components.shapes.*;
-import nengine.physics.collision.EntityCell;
+import nengine.physics.collision.shapes.*;
+import nengine.physics.collision.ShapeCell;
 
 // Box2Dのbody
 class RigidBody implements Component
@@ -14,7 +14,6 @@ class RigidBody implements Component
     public inline static var componentName = "RigidBody";
     public var name(default, never) = componentName;
     public var shapes:Array<Shape>;
-    public var cell(default, null):EntityCell;
     public var entity:Entity;
     @:isVar public var invMass(default, set):Float;
     @:isVar public var mass(default, set):Float; 
@@ -50,8 +49,7 @@ class RigidBody implements Component
     public function new(entity:Entity, shapes:Array<Shape>)
     {
         this.entity = entity;
-        this.shapes = shapes.map((shape) -> shape.clone());
-        cell = new EntityCell(entity);
+        this.shapes = shapes;
     }
 
     public function getAABB(transform:Transform2):AABB2

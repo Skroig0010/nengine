@@ -4,7 +4,7 @@ import utest.Assert;
 import ecs.Entity;
 import nengine.math.*;
 import nengine.components.*;
-import nengine.components.shapes.*;
+import nengine.physics.collision.shapes.*;
 import nengine.physics.collision.QuadTree;
 
 @:access(nengine.physics.collision.QuadTree)
@@ -64,13 +64,13 @@ class QuadTreeTest extends Test
         var t = new QuadTree(2, new AABB2(new Vec2(0, 0), new Vec2(40, 40)));
         var e1 = makeCircleEntity(new Vec2(30, 30), 5);
         var e2 = makeCircleEntity(new Vec2(25, 25), 10);
-        t.onEntityAdded(e1);
-        t.onEntityAdded(e2);
-        Assert.equals(e2, t.linearTree[0].entity);
+        t.onEntityAdded(e1.entity);
+        t.onEntityAdded(e2.entity);
+        Assert.equals(e2.shape, t.linearTree[0].shape);
         Assert.equals(null, t.linearTree[1]);
         Assert.equals(null, t.linearTree[2]);
         Assert.equals(null, t.linearTree[3]);
-        Assert.equals(e1, t.linearTree[4].entity);
+        Assert.equals(e1.shape, t.linearTree[4].shape);
         Assert.equals(null, t.linearTree[5]);
         Assert.equals(null, t.linearTree[6]);
         Assert.equals(null, t.linearTree[7]);
@@ -91,29 +91,30 @@ class QuadTreeTest extends Test
 
     public function testCheckHitAll()
     {
-        var hitList = new Array<Entity>();
+        var hitList = new Array<Shape>();
         var t = new QuadTree(2, new AABB2(new Vec2(0, 0), new Vec2(40, 40)));
         var e1 = makeCircleEntity(new Vec2(30, 30), 5);
         var e2 = makeCircleEntity(new Vec2(25, 25), 10);
-        t.onEntityAdded(e1);
-        t.onEntityAdded(e2);
-        t.checkHitAll((entity1, entity2)->
+        t.onEntityAdded(e1.entity);
+        t.onEntityAdded(e2.entity);
+        t.checkHitAll((shape1, shape2)->
                 {
-                    hitList.push(entity1);
-                    hitList.push(entity2);
+                    hitList.push(shape1);
+                    hitList.push(shape2);
                 });
-        for(e in [e2, e1])
+        for(e in [e2.shape, e1.shape])
         {
         Assert.equals(e, hitList.pop());
         }
     }
 
-    function makeCircleEntity(position:Vec2, radius:Float):Entity
+    function makeCircleEntity(position:Vec2, radius:Float):{entity:Entity, shape:Shape}
     {
         var entity = new Entity();
+        var shape = new CircleShape(new Vec2(), radius);
         entity.addComponent(new Transform(position, new Rot2()));
-        entity.addComponent(new RigidBody(entity, [new CircleShape(new Vec2(), radius)]));
-        return entity;
+        entity.addComponent(new RigidBody(entity, [shape]));
+        return {entity:entity, shape:shape};
     }
 
 }

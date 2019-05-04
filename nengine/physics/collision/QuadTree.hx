@@ -3,10 +3,13 @@ import haxe.ds.GenericStack;
 import ecs.Entity;
 import nengine.components.*;
 import nengine.math.*;
+import nengine.physics.collision.shapes.Shape;
 
 class QuadTree
 {
-    private var linearTree = new Array<EntityCell>();
+    public static var aabbExtension(default, never) = 0.1;
+
+    private var linearTree = new Array<ShapeCell>();
     // 分割数
     private var maxLevel:Int;
 
@@ -14,6 +17,7 @@ class QuadTree
 
     public function new(maxLevel:Int, area:AABB2)
     {
+        if(maxLevel < 0)throw "QuadTree level should be 0 or over.";
         this.maxLevel = maxLevel;
         this.area = area;
         for(_ in 0...getSpaceNumber(maxLevel))
@@ -22,30 +26,52 @@ class QuadTree
         }
     }
 
+    public function addShape(shape:Shape, transform:Transform2):Void
+    {
+        var cell = shape.cell;
+        var aabb = shape.computeAABB(transform);
+        var r = new Vec2(aabbExtension, aabbExtension);
+        var fatAABB = new AABB2(aabb.upperBound - r, aabb.lowerBound + r);
+        cell.fatAABB = fatAABB;
+        addToLinearTree(cell, getTreeIndex(fatAABB));
+    }
+
+    public function removeShape(shape:Shape):Void
+    {
+        removeFromLinearTree(shape.cell);
+    }
+
     // RigidBodyのFamilyにEntityが追加されたときに呼ぶメソッド
     public function onEntityAdded(entity:Entity):Void
     {
-        addToLinearTree(entity, getTreeIndex(entity));
+        var transform = entity.getComponent(Transform).global;
+        for(shape in entity.getComponent(RigidBody).shapes)
+        {
+            addShape(shape, transform);
+        }
     }
 
     public function addEntities(entities:Array<Entity>):Void
     {
         for(entity in entities)
         {
-            addToLinearTree(entity, getTreeIndex(entity));
+            onEntityAdded(entity);
         }
     }
 
     public function onEntityRemoved(entity:Entity):Void
     {
-        removeFromLinearTree(entity);
+        for(shape in entity.getComponent(RigidBody).shapes)
+        {
+            removeShape(shape);
+        }
     }
 
     // 4分木内のオブジェクト全て対与えられたEntityとの衝突判定を行う
-    public function checkHit(entity:Entity, collisionCheck:Entity->Entity->Void):Void
+    public function checkHit(shape:Shape, listener:HitCallback):Void
     {
-        // おそらくバグってる
-        var treeIndex = getTreeIndex(entity);
+        var cell = shape.cell;
+        var treeIndex = cell.parentId;
         var depth = getLevel(treeIndex);
         treeIndex -= getSpaceNumber(depth - 1);
         // indexより上位の空間と衝突判定
@@ -54,16 +80,16 @@ class QuadTree
         {
             currentTreeIndex = currentTreeIndex >> 2;
             // currentTreeIndex内のEntityとの衝突判定 
-            checkHitList(collisionCheck, entity, linearTree[currentTreeIndex + getSpaceNumber(depth - minusDepth - 1)]);
+            checkHitList(cell, linearTree[currentTreeIndex + getSpaceNumber(depth - minusDepth - 1)], listener);
         }
 
         // index含む下位の空間があれば衝突判定
-        checkHit2(collisionCheck, entity, treeIndex, depth);
+        checkHit2(cell, treeIndex, depth, listener);
     }
 
-    private function checkHit2(collisionCheck:Entity->Entity->Void, entity:Entity, currentTreeIndex:Int, depth:Int):Void
+    private function checkHit2(cell:ShapeCell, currentTreeIndex:Int, depth:Int, listener:HitCallback):Void
     {
-        checkHitList(collisionCheck, entity, linearTree[currentTreeIndex + getSpaceNumber(depth - 1)]);
+        checkHitList(cell, linearTree[currentTreeIndex + getSpaceNumber(depth - 1)], listener);
 
         // 下位空間が範囲外なら終了
         if(maxLevel <= depth) return;
@@ -72,19 +98,20 @@ class QuadTree
 
         for(index in 0...4)
         {
-            checkHit2(collisionCheck, entity, checkNum + index, depth + 1);
+            checkHit2(cell, checkNum + index, depth + 1, listener);
         }
     }
 
     // 4分木内のオブジェクト全て対全ての衝突判定を行う
-    public function checkHitAll(collisionCheck:Entity->Entity->Void):Void
+    // これを使う機会はないはず
+    public function checkHitAll(listener:HitCallback):Void
     {
         var currentTreeIndex = 0;
         var indexStack = new GenericStack<Int>();
-        checkHitAll2(collisionCheck, currentTreeIndex, indexStack, 0);
+        checkHitAll2(currentTreeIndex, indexStack, 0, listener);
     }
 
-    private function checkHitAll2(collisionCheck:Entity->Entity->Void, currentTreeIndex:Int, indexStack:GenericStack<Int>, depth:Int):Void
+    private function checkHitAll2(currentTreeIndex:Int, indexStack:GenericStack<Int>, depth:Int, listener:HitCallback):Void
     {
         // 現在の空間の最初のcellを取得
         var cellA = linearTree[currentTreeIndex + getSpaceNumber(depth - 1)];
@@ -92,13 +119,13 @@ class QuadTree
         while(cellA != null){
             // 同じ空間内のEntityとの衝突判定
             var cellB = cellA.next;
-            checkHitList(collisionCheck, cellA.entity, cellB);
+            checkHitList(cellA, cellB, listener);
 
             // スタックに登録されているEntityとの衝突判定
             for(index in indexStack)
             {
                 cellB = linearTree[index];
-                checkHitList(collisionCheck, cellA.entity, cellB);
+                checkHitList(cellA, cellB, listener);
             }
 
             cellA = cellA.next;
@@ -115,28 +142,28 @@ class QuadTree
         // 下位空間の探索
         for(index in 0...4)
         {
-            checkHitAll2(collisionCheck, checkNum + index, indexStack, depth + 1);
+            checkHitAll2(checkNum + index, indexStack, depth + 1, listener);
         }
         indexStack.pop();
         return;
     }
 
-    private function checkHitList(collisionCheck:Entity->Entity->Void, entity:Entity, cells:EntityCell):Void
+    private function checkHitList(cellA:ShapeCell, cells:ShapeCell, listener:HitCallback):Void
     {
-        var cell = cells;
-        while(cell != null)
+        var cellB = cells;
+        while(cellB != null)
         {
-            collisionCheck(entity, cell.entity);
-            cell = cell.next;
+
+            if(cellA != cellB && Collision.collideAABBs(cellA.fatAABB, cellB.fatAABB))
+            {
+                listener(cellA.shape, cellB.shape);
+            }
+            cellB = cellB.next;
         }
     }
 
-    private function getTreeIndex(entity:Entity):Int
+    private function getTreeIndex(aabb:AABB2):Int
     {
-        var transform = cast(entity.getComponent(Transform.componentName), Transform);
-        var body = cast(entity.getComponent(RigidBody.componentName), RigidBody);
-        var aabb = body.getAABB(transform.global);
-
         var mortonA = getMortonNumber(aabb.upperBound);
         var mortonB = getMortonNumber(aabb.lowerBound);
         var ms = mortonA ^ mortonB;
@@ -202,27 +229,29 @@ class QuadTree
         return if(level < 0) 0 else Std.int((pow4(level + 1) - 1)/3);
     }
 
-    private function addToLinearTree(entity:Entity, id:Int):Void
+    private function addToLinearTree(cell:ShapeCell, id:Int):Void
     {
         if(id >= linearTree.length) throw "over QuadTree id";
-        var body = cast(entity.getComponent(RigidBody.componentName), RigidBody);
+        cell.parentId = id;
         if(linearTree[id] == null)
         {
-            linearTree[id] = body.cell;
+            linearTree[id] = cell;
         }
         else
         {
             var temp = linearTree[id];
-            body.cell.next = temp;
-            linearTree[id] = body.cell;
+            cell.next = temp;
+            linearTree[id] = cell;
             temp.prev = linearTree[id];
         }
     }
 
-    private function removeFromLinearTree(entity:Entity):Void
+    private function removeFromLinearTree(cell:ShapeCell):Void
     { 
-        var body = cast(entity.getComponent(RigidBody.componentName), RigidBody);
-        body.cell.prev.next = body.cell.next;
-        body.cell.next.prev = body.cell.prev;
+        if(cell == linearTree[cell.parentId])linearTree[cell.parentId] = cell.next;
+        if(cell.prev != null)cell.prev.next = cell.next;
+        if(cell.next != null)cell.next.prev = cell.prev;
+        cell.prev = cell.next = null;
+        cell.parentId = -1;
     }
 }

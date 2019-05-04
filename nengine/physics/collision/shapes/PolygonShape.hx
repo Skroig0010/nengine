@@ -1,9 +1,12 @@
-package nengine.components.shapes;
+package nengine.physics.collision.shapes;
 import nengine.math.*;
+import nengine.physics.collision.ShapeCell;
+import nengine.components.RigidBody;
 
 class PolygonShape implements Shape
 {
-
+    public var body:RigidBody;
+    public var cell(default, null):ShapeCell;
     public var vertices = new Array<Vec2>();
     public var normals = new Array<Vec2>();
 
@@ -11,6 +14,7 @@ class PolygonShape implements Shape
     {
         this.vertices = vertices;
         this.normals = normals;
+        cell = new ShapeCell(this);
     }
 
     public static function makeBoxTransformed(transform:Transform2, width:Float, height:Float):PolygonShape
@@ -47,13 +51,6 @@ class PolygonShape implements Shape
             lower = Vec2.min(v, lower);
         }
         return new AABB2(upper, lower);
-    }
-
-    public function clone():PolygonShape
-    {
-        var vertices = this.vertices.copy();
-        var normals = this.normals.copy();
-        return new PolygonShape(vertices, normals);
     }
 
     private static function getSeparatedPoints(vertices:Array<Vec2>):Array<Vec2>
