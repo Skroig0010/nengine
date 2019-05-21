@@ -5,16 +5,21 @@ import nengine.components.RigidBody;
 
 class PolygonShape implements Shape
 {
-    public var body:RigidBody;
-    public var cell(default, null):ShapeCell;
+    public var type(default, never) = ShapeType.Polygon;
     public var vertices = new Array<Vec2>();
     public var normals = new Array<Vec2>();
+    public var isSensor:Bool;
+    public var body:RigidBody;
+    public var cell(default, null):ShapeCell;
+    public var id(default, null):Int;
 
     public function new(vertices:Array<Vec2>, normals:Array<Vec2>)
     {
         this.vertices = vertices;
         this.normals = normals;
+        this.isSensor = false;
         cell = new ShapeCell(this);
+        id = ShapeIdCounter.getId();
     }
 
     public static function makeBoxTransformed(transform:Transform2, width:Float, height:Float):PolygonShape
@@ -51,6 +56,66 @@ class PolygonShape implements Shape
             lower = Vec2.min(v, lower);
         }
         return new AABB2(upper, lower);
+    }
+
+    public function computeMass(density:Float):MassData
+    {
+        Settings.assert(vertices.length >= 3);
+
+        var center = new Vec2(0.0, 0.0);
+        var area = 0.0;
+        var inertia = 0.0;
+
+        var s = new Vec2(0.0, 0.0);
+
+        for(vertex in vertices)
+        {
+            s += vertex;
+        }
+        s *= 1.0 / vertices.length;
+
+        final inv3 = 1.0/3.0;
+
+        for(index in 0...vertices.length)
+        {
+            // triangle vertices
+            var e1 = vertices[index] - s;
+            var e2 = if(index + 1 < vertices.length) vertices[index + 1] -s else vertices[0] - s;
+
+            var d = e1.cross(e2);
+
+            var triangleArea = 0.5 * d;
+            area += triangleArea;
+
+            // area weighted centroid
+            center += triangleArea * inv3 * (e1 + e2);
+
+            var ex1 = e1.x, ey1 = e1.y;
+            var ex2 = e2.x, ey2 = e2.y;
+
+            var intx2 = ex1*ex1 + ex2*ex1 + ex2*ex2;
+            var inty2 = ey1*ey1 + ey2*ey1 + ey2*ey2;
+
+            inertia += (0.25 * inv3 * d) * (intx2 + inty2);
+        }
+
+        var massData = new MassData();
+
+        // total mass
+        massData.mass = density * area;
+
+        // center of mass
+        Settings.assert(area > 0.001);
+        center *= 1.0 / area;
+        massData.center = center + s;
+
+        // inertia tensor relative to the local origin (point s)
+        massData.inertia = density * inertia;
+
+        // shift to center of mass then to original body origin
+        massData.inertia += massData.mass * (massData.center.dot(massData.center) - center.dot(center));
+
+        return massData;
     }
 
     private static function getSeparatedPoints(vertices:Array<Vec2>):Array<Vec2>

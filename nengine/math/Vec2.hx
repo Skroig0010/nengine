@@ -24,6 +24,12 @@ abstract Vec2(Vec2Data) from Vec2Data to Vec2Data
         this.y = 0;
     }
 
+    public inline function set(x:Float, y:Float):Void
+    {
+        this.x = x;
+        this.y = y;
+    }
+
     public inline function setV(v:Vec2):Void
     {
         this.x = v.x;
@@ -101,6 +107,11 @@ abstract Vec2(Vec2Data) from Vec2Data to Vec2Data
     public static inline function max(a:Vec2, b:Vec2):Vec2
     {
         return new Vec2(Math.max(a.x, b.x), Math.max(a.y, b.y));
+    }
+
+    public static inline function clamp(a:Vec2, low:Vec2, high:Vec2):Vec2
+    {
+        return max(low, min(a, high));
     }
 
     public inline function dot(v:Vec2)return this.x * v.x + this.y * v.y;

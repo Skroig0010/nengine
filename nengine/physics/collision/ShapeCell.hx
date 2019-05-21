@@ -1,5 +1,4 @@
 package nengine.physics.collision;
-import ecs.Entity;
 import nengine.physics.collision.shapes.*;
 import nengine.math.*;
 

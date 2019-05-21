@@ -2,10 +2,12 @@ package nengine.components;
 import ecs.Entity;
 import ecs.Component;
 import ecs.Signal;
+import nengine.components.Transform;
 import nengine.math.*;
 import nengine.systems.PhysicsSystem;
 import nengine.physics.collision.shapes.*;
 import nengine.physics.collision.ShapeCell;
+import nengine.physics.dynamics.contacts.ContactEdge;
 
 // Box2Dのbody
 class RigidBody implements Component
@@ -13,43 +15,97 @@ class RigidBody implements Component
     // Component Data
     public inline static var componentName = "RigidBody";
     public var name(default, never) = componentName;
-    public var shapes:Array<Shape>;
     public var entity:Entity;
+    private var shapes:Array<Shape>;
+
+    public var contactEdges:ContactEdge;
+
     @:isVar public var invMass(default, set):Float;
     @:isVar public var mass(default, set):Float; 
-    private function set_invMass(invMass:Float):Float
+    @:isVar public var inertia(default, set):Float;
+    @:isVar public var invInertia(default, set):Float;
+
+    public var transform:Transform2;
+    public var force = new Vec2();
+    public var torque:Float = 0.0;
+    public var linearVelocity = new Vec2();
+    public var angularVelocity:Float = 0.0;
+    public var linearDamping:Float = 0.0;
+    public var angularDamping:Float = 0.0;
+    public var gravityScale:Float = 0.0;
+    public var localCenter = new Vec2();
+
+    public var type:BodyType = DynamicBody;
+
+    public var system:PhysicsSystem;
+
+    // islandIndex的な
+    public var index:Int = 0;
+
+    private inline function invOr0(value:Float):Float
     {
-        if(invMass != 0) 
+        return if(value != 0)
         {
-            mass = 1 / invMass;
+            1 / value;
         }
         else
         {
-            mass = Math.POSITIVE_INFINITY;
+            0;
         }
+    }
 
-        this.invMass = invMass;
-        return invMass;
+    private function set_invMass(invMass:Float):Float
+    {
+        mass  = invOr0(invMass);
+        return this.invMass = invMass;
     }
 
     private function set_mass(mass:Float):Float
     {
-        if(mass != 0)
-        {
-            invMass = 1 / mass;
-        }
-        else
-        {
-            invMass = Math.POSITIVE_INFINITY;
-        }
-        this.mass = mass;
-        return mass;
+        invMass = invOr0(mass);
+        return this.mass = mass;
     }
 
-    public function new(entity:Entity, shapes:Array<Shape>)
+    private function set_invInertia(invInertia:Float):Float
+    {
+        inertia = invOr0(invInertia);
+        return this.invInertia = invInertia;
+    }
+
+    private function set_inertia(inertia:Float):Float
+    {
+        invInertia = invOr0(inertia);
+        return this.inertia = inertia;
+    }
+
+    public function new(entity:Entity, shapes:Array<Shape>, system:PhysicsSystem)
     {
         this.entity = entity;
-        this.shapes = shapes;
+        this.transform = entity.getComponent(Transform).global;
+        for(shape in shapes)
+        {
+            addShape(shape);
+        }
+        this.system = system;
+    }
+
+    public function addShape(shape:Shape):Void
+    {
+        shapes.push(shape);
+        shape.body = this;
+        system.addShape(shape, transform);
+    }
+
+    public function removeShape(shape:Shape):Void
+    {
+        shapes.remove(shape);
+        if(shape.body == this)shape.body = null;
+        system.removeShape(shape);
+    }
+
+    public function getShapesIterator():Iterator<Shape>
+    {
+        return shapes.iterator();
     }
 
     public function getAABB(transform:Transform2):AABB2

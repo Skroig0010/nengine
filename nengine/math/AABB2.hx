@@ -10,4 +10,17 @@ class AABB2
         this.upperBound = upperBound;
         this.lowerBound = lowerBound;
     }
+
+    public function combine(other:AABB2):AABB2
+    {
+        return new AABB2(Vec2.min(upperBound, other.upperBound), Vec2.max(lowerBound, other.lowerBound));
+    }
+
+    public function contains(other:AABB2):Bool
+    {
+        return upperBound.x <= other.upperBound.x
+            && upperBound.y <= other.upperBound.y
+            && other.lowerBound.x <= lowerBound.x
+            && other.lowerBound.y <= lowerBound.y;
+    }
 }

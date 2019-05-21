@@ -5,16 +5,21 @@ import nengine.components.RigidBody;
 
 class CircleShape implements Shape
 {
-    public var body:RigidBody;
-    public var cell(default, null):ShapeCell;
+    public var type(default, never) = ShapeType.Circle;
     public var radius:Float;
     public var position:Vec2;
+    public var isSensor:Bool;
+    public var body:RigidBody;
+    public var cell(default, null):ShapeCell;
+    public var id(default, null):Int;
 
     public function new(position:Vec2, radius:Float)
     {
         this.position = position;
         this.radius = radius;
+        this.isSensor = false;
         cell = new ShapeCell(this);
+        id = ShapeIdCounter.getId();
     }
 
     public function computeAABB(transform:Transform2):AABB2
@@ -25,4 +30,14 @@ class CircleShape implements Shape
         return new AABB2(upperBound, lowerBound);
     }
 
+    public function computeMass(density:Float):MassData
+    {
+        var massData = new MassData();
+        massData.mass = density * Settings.pi * radius * radius;
+        massData.center = position;
+
+        // inertia about the local origin
+        massData.inertia = massData.mass * (0.5 * radius * radius + position.dot(position));
+        return massData;
+    }
 }

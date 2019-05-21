@@ -1,6 +1,5 @@
 package nengine.physics.collision;
 import haxe.ds.GenericStack;
-import ecs.Entity;
 import nengine.components.*;
 import nengine.math.*;
 import nengine.physics.collision.shapes.Shape;
@@ -28,12 +27,10 @@ class QuadTree
 
     public function addShape(shape:Shape, transform:Transform2):Void
     {
+        // moveShapeにも同じコード
         var cell = shape.cell;
         var aabb = shape.computeAABB(transform);
-        var r = new Vec2(aabbExtension, aabbExtension);
-        var fatAABB = new AABB2(aabb.upperBound - r, aabb.lowerBound + r);
-        cell.fatAABB = fatAABB;
-        addToLinearTree(cell, getTreeIndex(fatAABB));
+        registerCell(cell, aabb);
     }
 
     public function removeShape(shape:Shape):Void
@@ -41,33 +38,26 @@ class QuadTree
         removeFromLinearTree(shape.cell);
     }
 
-    // RigidBodyのFamilyにEntityが追加されたときに呼ぶメソッド
-    public function onEntityAdded(entity:Entity):Void
+    public function moveShape(shape:Shape, transform:Transform2):Bool
     {
-        var transform = entity.getComponent(Transform).global;
-        for(shape in entity.getComponent(RigidBody).shapes)
-        {
-            addShape(shape, transform);
-        }
+        var aabb = shape.computeAABB(transform);
+        var cell = shape.cell;
+        if(cell.fatAABB.contains(aabb)) return false;
+
+        removeShape(shape);
+        registerCell(cell, aabb);
+        return true;
     }
 
-    public function addEntities(entities:Array<Entity>):Void
+    private function registerCell(cell:ShapeCell, aabb:AABB2):Void
     {
-        for(entity in entities)
-        {
-            onEntityAdded(entity);
-        }
+        var r = new Vec2(aabbExtension, aabbExtension);
+        var fatAABB = new AABB2(aabb.upperBound - r, aabb.lowerBound + r);
+        cell.fatAABB = fatAABB;
+        addToLinearTree(cell, getTreeIndex(fatAABB));
     }
 
-    public function onEntityRemoved(entity:Entity):Void
-    {
-        for(shape in entity.getComponent(RigidBody).shapes)
-        {
-            removeShape(shape);
-        }
-    }
-
-    // 4分木内のオブジェクト全て対与えられたEntityとの衝突判定を行う
+    // 4分木内のオブジェクト全て対与えられたShapeとの衝突判定を行う
     public function checkHit(shape:Shape, listener:HitCallback):Void
     {
         var cell = shape.cell;
@@ -79,7 +69,7 @@ class QuadTree
         for(minusDepth in 0... depth)
         {
             currentTreeIndex = currentTreeIndex >> 2;
-            // currentTreeIndex内のEntityとの衝突判定 
+            // currentTreeIndex内のShapeとの衝突判定 
             checkHitList(cell, linearTree[currentTreeIndex + getSpaceNumber(depth - minusDepth - 1)], listener);
         }
 
@@ -117,11 +107,11 @@ class QuadTree
         var cellA = linearTree[currentTreeIndex + getSpaceNumber(depth - 1)];
 
         while(cellA != null){
-            // 同じ空間内のEntityとの衝突判定
+            // 同じ空間内のShapeとの衝突判定
             var cellB = cellA.next;
             checkHitList(cellA, cellB, listener);
 
-            // スタックに登録されているEntityとの衝突判定
+            // スタックに登録されているShapeとの衝突判定
             for(index in indexStack)
             {
                 cellB = linearTree[index];
