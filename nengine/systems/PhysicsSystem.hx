@@ -6,6 +6,8 @@ import nengine.components.RigidBody;
 import nengine.components.Transform;
 import nengine.math.*;
 import nengine.physics.collision.shapes.Shape;
+import nengine.physics.collision.BroadPhase;
+import nengine.physics.collision.QuadTree;
 import nengine.physics.dynamics.contacts.ContactSolver;
 import nengine.physics.dynamics.ContactManager;
 import nengine.physics.dynamics.TimeStep;
@@ -19,7 +21,7 @@ class PhysicsSystem implements System
     public var velocityIterations = 4;
     public var positionIterations = 4;
     public var flags:Int;
-    public var gravity:Vec2;
+    public var gravity = new Vec2();
 
     private var contactManager:ContactManager;
     private var bodies = new Array<RigidBody>();
@@ -39,10 +41,27 @@ class PhysicsSystem implements System
     public static inline var lockedFlag = 0x0002;
     public static inline var clearForcesFlag = 0x0004;
 
-    public function new(world:World, contactManager:ContactManager)
+    public function new(world:World, area:AABB2, unit:AABB2)
     {
         world.addSystem(this);
-        this.contactManager = contactManager;
+
+        // quadtreeレベル推定
+        var areaSize = area.lowerBound - area.upperBound;
+        var unitSize = unit.lowerBound - unit.upperBound;
+        var divX = areaSize.x / (unitSize.x * 2);
+        var divY = areaSize.y / (unitSize.y * 2);
+        var div = Std.int(Math.min(divX, divY));
+
+        // calculate tree level
+        var level = 0;
+        while(div != 0)
+        {
+            level++;
+            div >>= 1;
+        }
+        level--;
+
+        contactManager = new ContactManager(new BroadPhase(new QuadTree(level, area)));
 
         world.getEntities([RigidBody.componentName]).map(onEntityAdded);
         world.entityAdded([RigidBody.componentName]).add(onEntityAdded);
@@ -68,7 +87,7 @@ class PhysicsSystem implements System
         }
         else
         {
-            contactManager.broadPhase.addBody(body);
+            // contactManager.broadPhase.addBody(body);
             bodies.push(body);
         }
     }
@@ -82,7 +101,7 @@ class PhysicsSystem implements System
         }
         else
         {
-            contactManager.broadPhase.removeBody(body);
+            // contactManager.broadPhase.removeBody(body);
             bodies.remove(body);
         }
     }

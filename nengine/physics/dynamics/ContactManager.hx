@@ -11,7 +11,7 @@ class ContactManager
     public var contacts:Contact;
 
     public var broadPhase:BroadPhase;
-    public var contactFilter:Option<ContactFilter>;
+    public var contactFilter:Option<ContactFilter> = None;
     public var contactListener:ContactListener;
 
     public function new (broadPhase:BroadPhase)

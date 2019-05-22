@@ -16,14 +16,14 @@ class RigidBody implements Component
     public inline static var componentName = "RigidBody";
     public var name(default, never) = componentName;
     public var entity:Entity;
-    private var shapes:Array<Shape>;
+    private var shapes = new Array<Shape>();
 
     public var contactEdges:ContactEdge;
 
-    @:isVar public var invMass(default, set):Float;
-    @:isVar public var mass(default, set):Float; 
-    @:isVar public var inertia(default, set):Float;
-    @:isVar public var invInertia(default, set):Float;
+    @:isVar public var mass(default, set):Float = 1;
+    @:isVar public var invMass(default, set):Float = 1;
+    @:isVar public var inertia(default, set):Float = 1;
+    @:isVar public var invInertia(default, set):Float = 1;
 
     public var transform:Transform2;
     public var force = new Vec2();
@@ -81,12 +81,12 @@ class RigidBody implements Component
     public function new(entity:Entity, shapes:Array<Shape>, system:PhysicsSystem)
     {
         this.entity = entity;
-        this.transform = entity.getComponent(Transform).global;
+        this.system = system;
+        this.transform = if(entity.hasComponent(Transform.componentName)) entity.getComponent(Transform).global else new Transform2();
         for(shape in shapes)
         {
             addShape(shape);
         }
-        this.system = system;
     }
 
     public function addShape(shape:Shape):Void

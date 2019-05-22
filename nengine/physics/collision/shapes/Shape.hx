@@ -9,6 +9,8 @@ interface Shape
     public var body:RigidBody; // RigidBody側で入れてくれる
     public var isSensor:Bool;
     public var cell(default, null):ShapeCell;
+    public var friction:Float;
+    public var restitution:Float;
     // 比較用
     public var id(default, null):Int;
 

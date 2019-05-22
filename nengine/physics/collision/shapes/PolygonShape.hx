@@ -12,6 +12,8 @@ class PolygonShape implements Shape
     public var body:RigidBody;
     public var cell(default, null):ShapeCell;
     public var id(default, null):Int;
+    public var friction:Float = 0.2;
+    public var restitution:Float = 0.0;
 
     public function new(vertices:Array<Vec2>, normals:Array<Vec2>)
     {
@@ -53,7 +55,7 @@ class PolygonShape implements Shape
         {
             var v = transform * vertices[index];
             upper = Vec2.min(v, upper);
-            lower = Vec2.min(v, lower);
+            lower = Vec2.max(v, lower);
         }
         return new AABB2(upper, lower);
     }
@@ -194,7 +196,7 @@ class PolygonShape implements Shape
 
             hullPoint = checkPoint;
         }
-        while(hullPoint == rightPoint);
+        while(hullPoint != rightPoint);
 
         if(hull.length < 3)
         {

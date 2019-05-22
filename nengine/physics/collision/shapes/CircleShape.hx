@@ -12,6 +12,8 @@ class CircleShape implements Shape
     public var body:RigidBody;
     public var cell(default, null):ShapeCell;
     public var id(default, null):Int;
+    public var friction:Float = 0.2;
+    public var restitution:Float = 0.0;
 
     public function new(position:Vec2, radius:Float)
     {

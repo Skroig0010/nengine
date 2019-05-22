@@ -17,10 +17,8 @@ class Settings
     public static inline var maxRotation = 0.5 * pi;
     public static inline var maxRotationSquared = maxRotation * maxRotation;
 
-    public static macro function assert(b:Expr):Expr
+    public static function assert(b:Bool):Void
     {
-        return macro{
-            if(!$b)throw "assertion failed";
-        }
+        if(!b)throw "assertion failed";
     }
 }

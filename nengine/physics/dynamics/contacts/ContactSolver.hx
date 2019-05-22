@@ -22,9 +22,16 @@ class ContactSolver
         var index = 0;
         while(contact != null)
         {
+            if(contact.flags & Contact.touchingFlag == 0) 
+            {
+                contact = contact.next;
+                continue;
+            }
             contacts.push(contact);
             var shapeA = contact.shapeA;
             var shapeB = contact.shapeB;
+            var radiusA = if(shapeA.type == Circle) cast (shapeA, CircleShape).radius else 0;
+            var radiusB = if(shapeB.type == Circle) cast (shapeB, CircleShape).radius else 0;
             var bodyA = shapeA.body;
             var bodyB = shapeB.body;
             var manifold = contact.manifold;
@@ -43,8 +50,8 @@ class ContactSolver
             vc.invInertiaA = bodyA.invInertia;
             vc.invInertiaB = bodyB.invInertia;
             vc.contactIndex = index;
-            vc.k.setZero();
-            vc.normalMass.setZero();
+            vc.k = new Mat22();
+            vc.normalMass = new Mat22();
 
             var pc = new ContactPositionConstraint();
             positionConstraints.push(pc);
@@ -57,10 +64,14 @@ class ContactSolver
             pc.localCenterB = bodyB.localCenter;
             pc.invInertiaA = bodyA.invInertia;
             pc.invInertiaB = bodyB.invInertia;
+            pc.localNormal = manifold.localNormal();
+            pc.localPoint = manifold.localPoint();
+            pc.radiusA = radiusA;
+            pc.radiusB = radiusB;
             pc.manifold = manifold;
 
-            pc.radiusA = if(shapeA.type == Circle) cast(shapeA, CircleShape).radius else 0;
-            pc.radiusB = if(shapeB.type == Circle) cast(shapeB, CircleShape).radius else 0;
+            pc.radiusA = if(shapeA.type == Circle) cast(shapeA, CircleShape).radius else 0.0;
+            pc.radiusB = if(shapeB.type == Circle) cast(shapeB, CircleShape).radius else 0.0;
 
             manifold.mapPoints((point)->{
                 var vcp = new VelocityConstraintPoint();
@@ -75,8 +86,8 @@ class ContactSolver
                     vcp.normalImpulse = 0.0;
                     vcp.tangentImpulse = 0.0;
                 }
-                vcp.rA.setZero();
-                vcp.rB.setZero();
+                vcp.rA = new Vec2();
+                vcp.rB = new Vec2();
                 vcp.normalMass = 0.0;
                 vcp.tangentMass = 0.0;
                 vcp.velocityBias = 0.0;
@@ -84,6 +95,7 @@ class ContactSolver
                 pc.localPoints.push(point.localPoint);
             });
             index++;
+            contact = contact.next;
         }
     }
 

@@ -8,18 +8,17 @@ using nengine.physics.collision.ManifoldFunction;
 
 class Contact
 {
-    public var manifold(default, null):Manifold;
+    public var manifold(default, null) = Manifold.None;
     public var shapeA:Shape;
     public var shapeB:Shape;
-    public var touching = false;
     public var prev:Contact;
     public var next:Contact;
-    public var nodeA:ContactEdge;
-    public var nodeB:ContactEdge;
-    public var flags:Int;
+    public var nodeA = new ContactEdge();
+    public var nodeB = new ContactEdge();
+    public var flags:Int = 0;
     public var friction:Float;
     public var restitution:Float;
-    public var tangentSpeed:Float;
+    public var tangentSpeed:Float = 0;
 
     // flags
     public static inline var islandFlag = 0x0001;
@@ -51,15 +50,27 @@ class Contact
             contact.shapeA = shapeB;
             contact.shapeB = shapeA;
         }
+        contact.friction = mixFriction(shapeA.friction, shapeB.friction);
+        contact.restitution = mixRestitution(shapeA.restitution, shapeB.restitution);
 
         return contact;
+    }
+
+    private static inline function mixFriction(frictionA:Float, frictionB:Float):Float
+    {
+        return Math.sqrt(frictionA * frictionB);
+    }
+
+    private static inline function mixRestitution(restitutionA:Float, restitutionB:Float):Float
+    {
+        return if(restitutionA > restitutionB) restitutionA else restitutionB;
     }
 
     public function update(listener:ContactListener):Void
     {
         var oldManifold = manifold;
         var touching = false;
-        var wasTouching = this.touching;
+        var wasTouching = (flags & touchingFlag) != 0;
         var sensor = shapeA.isSensor || shapeB.isSensor;
         var transformA = shapeA.body.transform;
         var transformB = shapeB.body.transform;
@@ -87,7 +98,7 @@ class Contact
             });
         }
 
-        this.touching = touching;
+        flags = if(touching) flags | touchingFlag else flags & ~touchingFlag;
 
         if(!wasTouching && touching && listener != null)
         {

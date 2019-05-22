@@ -17,6 +17,7 @@ class BroadPhase
         this.quadTree = quadTree;
     }
 
+    /* addBody分とaddShape分で二重にshapeを追加してしまっているのでこれは必要ない？
     public function addBody(body:RigidBody):Void
     {
         var transform = body.transform;
@@ -32,7 +33,7 @@ class BroadPhase
         {
             removeShape(shape);
         }
-    }
+    }*/
 
     public function addShape(shape:Shape, transform:Transform2):Void
     {
