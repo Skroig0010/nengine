@@ -19,6 +19,9 @@ class Settings
 
     public static function assert(b:Bool):Void
     {
-        if(!b)throw "assertion failed";
+        if(!b)
+        {
+            throw "assertion failed";
+        }
     }
 }

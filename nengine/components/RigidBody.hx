@@ -20,10 +20,10 @@ class RigidBody implements Component
 
     public var contactEdges:ContactEdge;
 
-    @:isVar public var mass(default, set):Float = 1;
-    @:isVar public var invMass(default, set):Float = 1;
-    @:isVar public var inertia(default, set):Float = 1;
-    @:isVar public var invInertia(default, set):Float = 1;
+    public var mass(default, null):Float = 1;
+    public var invMass(default, null):Float = 1;
+    public var inertia(default, null):Float = 1;
+    public var invInertia(default, null):Float = 1;
 
     public var transform:Transform2;
     public var force = new Vec2();
@@ -35,12 +35,51 @@ class RigidBody implements Component
     public var gravityScale:Float = 0.0;
     public var localCenter = new Vec2();
 
-    public var type:BodyType = DynamicBody;
+    @:isVar public var type(default, set):BodyType = DynamicBody;
+    private function set_type(type:BodyType):BodyType
+    {
+        Settings.assert(system.flags & PhysicsSystem.lockedFlag == 0);
+        if(system.flags & PhysicsSystem.lockedFlag != 0) return this.type;
+        if(this.type == type) return type;
+
+        this.type = type;
+        resetMassData();
+        if(this.type == StaticBody)
+        {
+            linearVelocity.setZero;
+            angularVelocity = 0.0;
+            system.synchronizeShapes(this);
+        }
+        force.setZero();
+        torque = 0.0;
+
+        // delete attached contacts
+        var ce = contactEdges;
+        while(ce != null)
+        {
+            var ce0 = ce;
+            ce = ce.next;
+            system.destroyContact(ce0.contact);
+        }
+        contactEdges = null;
+
+        for(shape in shapes)
+        {
+            system.touchShape(shape);
+        }
+
+        return this.type;
+
+    }
+    public var flags:Int = 0;
 
     public var system:PhysicsSystem;
 
     // islandIndex的な
     public var index:Int = 0;
+
+    // flags
+    public static inline var fixedRotationFlag = 0x0010;
 
     private inline function invOr0(value:Float):Float
     {
@@ -52,30 +91,6 @@ class RigidBody implements Component
         {
             0;
         }
-    }
-
-    private function set_invMass(invMass:Float):Float
-    {
-        mass  = invOr0(invMass);
-        return this.invMass = invMass;
-    }
-
-    private function set_mass(mass:Float):Float
-    {
-        invMass = invOr0(mass);
-        return this.mass = mass;
-    }
-
-    private function set_invInertia(invInertia:Float):Float
-    {
-        inertia = invOr0(invInertia);
-        return this.invInertia = invInertia;
-    }
-
-    private function set_inertia(inertia:Float):Float
-    {
-        invInertia = invOr0(inertia);
-        return this.inertia = inertia;
     }
 
     public function new(entity:Entity, shapes:Array<Shape>, system:PhysicsSystem)
@@ -94,6 +109,7 @@ class RigidBody implements Component
         shapes.push(shape);
         shape.body = this;
         system.addShape(shape, transform);
+        if(shape.density > 0.0)resetMassData();
     }
 
     public function removeShape(shape:Shape):Void
@@ -101,11 +117,69 @@ class RigidBody implements Component
         shapes.remove(shape);
         if(shape.body == this)shape.body = null;
         system.removeShape(shape);
+        resetMassData();
     }
 
-    public function getShapesIterator():Iterator<Shape>
+    public function iterator():Iterator<Shape>
     {
         return shapes.iterator();
+    }
+
+    public function resetMassData():Void
+    {
+        mass = 0.0;
+        invMass = 0.0;
+        inertia = 0.0;
+        invInertia = 0.0;
+        localCenter.setZero();
+        switch(type)
+        {
+            case StaticBody:
+                return;
+            case DynamicBody:
+                // accumulate mass over all shapes
+                var localCenter = new Vec2();
+                for(shape in shapes)
+                {
+                    if(shape.density == 0.0) continue;
+
+                    var massData = shape.computeMass();
+                    mass += massData.mass;
+                    localCenter += massData.mass * massData.center;
+                    inertia += massData.inertia;
+                }
+                // compute center of mass
+                if(mass > 0.0) 
+                {
+                    invMass = invOr0(mass);
+                    localCenter *= invMass;
+                }
+                else
+                {
+                    mass = 1.0;
+                    invMass = 1.0;
+                }
+
+                if(inertia > 0.0 && (flags & fixedRotationFlag) == 0)
+                {
+                    // center the inertia about the center of mass
+                    inertia -= mass * localCenter.dot(localCenter);
+                    Settings.assert(inertia > 0.0);
+                    invInertia = invOr0(inertia);
+                }
+                else
+                {
+                    inertia = 0;
+                    invInertia = 0;
+                }
+
+                // move center of mass
+                var oldCenter = transform * this.localCenter;
+                this.localCenter = localCenter;
+                linearVelocity += Vec2.crossFV(angularVelocity, transform * localCenter - oldCenter);
+
+        }
+
     }
 
     public function getAABB(transform:Transform2):AABB2

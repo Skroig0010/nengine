@@ -8,19 +8,19 @@ import nengine.math.*;
 import nengine.physics.collision.shapes.Shape;
 import nengine.physics.collision.BroadPhase;
 import nengine.physics.collision.QuadTree;
+import nengine.physics.dynamics.contacts.Contact;
 import nengine.physics.dynamics.contacts.ContactSolver;
 import nengine.physics.dynamics.ContactManager;
 import nengine.physics.dynamics.TimeStep;
-
 import nengine.physics.dynamics.Position;
 import nengine.physics.dynamics.Velocity;
 
 class PhysicsSystem implements System
 {
     public var world:World;
-    public var velocityIterations = 4;
-    public var positionIterations = 4;
-    public var flags:Int;
+    public var velocityIterations = 2;
+    public var positionIterations = 2;
+    public var flags:Int = 0;
     public var gravity = new Vec2();
 
     private var contactManager:ContactManager;
@@ -29,8 +29,8 @@ class PhysicsSystem implements System
     private var velocities= new Array<Velocity>();
 
 
-    private var prevInvDt:Float;
-    private var warmStarting:Bool;
+    private var prevInvDt:Float = 0;
+    private var warmStarting:Bool = true;
 
     private var addedBodies = new List<RigidBody>();
     private var addedShapes = new List<{shape:Shape, transform:Transform2}>();
@@ -106,6 +106,16 @@ class PhysicsSystem implements System
         }
     }
 
+    public function touchShape(shape:Shape):Void
+    {
+        contactManager.broadPhase.touchShape(shape);
+    }
+
+    public function destroyContact(contact:Contact):Void
+    {
+        contactManager.destroy(contact);
+    }
+
     // RigidBodyのaddShapeが呼んでくれるからこっちは呼ぶな
     public function addShape(shape:Shape, transform:Transform2):Void
     {
@@ -141,7 +151,7 @@ class PhysicsSystem implements System
     public function synchronizeShapes(body:RigidBody):Void
     {
         var transform = body.transform;
-        for(shape in body.getShapesIterator())
+        for(shape in body)
         {
             contactManager.broadPhase.moveShape(shape, transform);
         }

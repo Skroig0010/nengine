@@ -14,12 +14,14 @@ class CircleShape implements Shape
     public var id(default, null):Int;
     public var friction:Float = 0.2;
     public var restitution:Float = 0.0;
+    public var density:Float = 0.0;
 
-    public function new(position:Vec2, radius:Float)
+    public function new(position:Vec2, radius:Float, density:Float)
     {
         this.position = position;
         this.radius = radius;
         this.isSensor = false;
+        this.density = density;
         cell = new ShapeCell(this);
         id = ShapeIdCounter.getId();
     }
@@ -32,7 +34,7 @@ class CircleShape implements Shape
         return new AABB2(upperBound, lowerBound);
     }
 
-    public function computeMass(density:Float):MassData
+    public function computeMass():MassData
     {
         var massData = new MassData();
         massData.mass = density * Settings.pi * radius * radius;

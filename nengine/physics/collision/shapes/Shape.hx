@@ -11,9 +11,11 @@ interface Shape
     public var cell(default, null):ShapeCell;
     public var friction:Float;
     public var restitution:Float;
+    public var density:Float;
+    public var radius:Float;
     // 比較用
     public var id(default, null):Int;
 
     public function computeAABB(transform:Transform2):AABB2;
-    public function computeMass(density:Float):MassData;
+    public function computeMass():MassData;
 }

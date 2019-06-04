@@ -66,7 +66,7 @@ class QuadTree
         treeIndex -= getSpaceNumber(depth - 1);
         // indexより上位の空間と衝突判定
         var currentTreeIndex = treeIndex;
-        for(minusDepth in 0... depth)
+        for(minusDepth in 0...depth + 1)
         {
             currentTreeIndex = currentTreeIndex >> 2;
             // currentTreeIndex内のShapeとの衝突判定 

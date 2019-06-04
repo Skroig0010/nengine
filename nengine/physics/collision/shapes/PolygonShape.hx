@@ -14,36 +14,54 @@ class PolygonShape implements Shape
     public var id(default, null):Int;
     public var friction:Float = 0.2;
     public var restitution:Float = 0.0;
+    public var density:Float = 0.0;
+    public var radius:Float = 0.05;
 
-    public function new(vertices:Array<Vec2>, normals:Array<Vec2>)
+    public function new(vertices:Array<Vec2>, normals:Array<Vec2>, density:Float)
     {
         this.vertices = vertices;
         this.normals = normals;
         this.isSensor = false;
+        this.density = density;
         cell = new ShapeCell(this);
         id = ShapeIdCounter.getId();
     }
 
-    public static function makeBoxTransformed(transform:Transform2, width:Float, height:Float):PolygonShape
+    public static function makeBox(width:Float, height:Float, density:Float):PolygonShape
     {
         var vertices = [new Vec2(-width/2, -height/2),
                 new Vec2(width/2, -height/2),
-                new Vec2(-width/2, height/2),
-                new Vec2(width/2, height/2)].map((vertex)-> return transform * vertex);
+                new Vec2(width/2, height/2),
+                new Vec2(-width/2, height/2)];
+        var normals = [new Vec2(0.0, -1.0),
+                new Vec2(1.0, 0.0),
+                new Vec2(0.0, 1.0),
+                new Vec2(-1.0, 0.0)];
+        var polygon = new PolygonShape(vertices, normals, density);
+        return polygon;
+    }
+
+
+    public static function makeBoxTransformed(transform:Transform2, width:Float, height:Float, density:Float):PolygonShape
+    {
+        var vertices = [new Vec2(-width/2, -height/2),
+                new Vec2(width/2, -height/2),
+                new Vec2(width/2, height/2),
+                new Vec2(-width/2, height/2)].map((vertex)-> return transform * vertex);
         var normals = [new Vec2(0.0, -1.0),
                 new Vec2(1.0, 0.0),
                 new Vec2(0.0, 1.0),
                 new Vec2(-1.0, 0.0)].map((vertex) -> return transform * vertex);
-        var polygon = new PolygonShape(vertices, normals);
+        var polygon = new PolygonShape(vertices, normals, density);
         return polygon;
     }
 
-    public static function makeConvexHull(vertices:Array<Vec2>):PolygonShape
+    public static function makeConvexHull(vertices:Array<Vec2>, density:Float):PolygonShape
     {
         var separated = getSeparatedPoints(vertices);
         var vertices = getConvexHull(separated);
         var normals = computeNormal(vertices);
-        return new PolygonShape(vertices, normals);
+        return new PolygonShape(vertices, normals, density);
     }
 
     public function computeAABB(transform:Transform2):AABB2
@@ -60,7 +78,7 @@ class PolygonShape implements Shape
         return new AABB2(upper, lower);
     }
 
-    public function computeMass(density:Float):MassData
+    public function computeMass():MassData
     {
         Settings.assert(vertices.length >= 3);
 

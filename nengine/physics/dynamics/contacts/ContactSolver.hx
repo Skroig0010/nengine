@@ -30,8 +30,8 @@ class ContactSolver
             contacts.push(contact);
             var shapeA = contact.shapeA;
             var shapeB = contact.shapeB;
-            var radiusA = if(shapeA.type == Circle) cast (shapeA, CircleShape).radius else 0;
-            var radiusB = if(shapeB.type == Circle) cast (shapeB, CircleShape).radius else 0;
+            var radiusA = shapeA.radius;
+            var radiusB = shapeB.radius;
             var bodyA = shapeA.body;
             var bodyB = shapeB.body;
             var manifold = contact.manifold;
@@ -69,9 +69,6 @@ class ContactSolver
             pc.radiusA = radiusA;
             pc.radiusB = radiusB;
             pc.manifold = manifold;
-
-            pc.radiusA = if(shapeA.type == Circle) cast(shapeA, CircleShape).radius else 0.0;
-            pc.radiusB = if(shapeB.type == Circle) cast(shapeB, CircleShape).radius else 0.0;
 
             manifold.mapPoints((point)->{
                 var vcp = new VelocityConstraintPoint();
@@ -273,7 +270,7 @@ class ContactSolver
 
                 // clamp the accumulated force
                 var maxFriction = friction * vcp.normalImpulse;
-                var newImpulse = Math2.clamp(vcp.tangentImpulse + lambda, -maxFriction, maxFriction);
+                var newImpulse = Math2.clamp(vcp.tangentImpulse + lambda, maxFriction, -maxFriction);
                 lambda = newImpulse - vcp.tangentImpulse;
                 vcp.tangentImpulse = newImpulse;
 

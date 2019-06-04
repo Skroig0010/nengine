@@ -41,7 +41,7 @@ class WorldManifold
                     this.separations.push((cB - cA).dot(normal));
                 }
             case FaceB(points, localNormal, localPoint):
-                var normal = transformB.rotation * localNormal;
+                normal = transformB.rotation * localNormal;
                 var planePoint = transformB * localPoint;
 
                 for(point in points)

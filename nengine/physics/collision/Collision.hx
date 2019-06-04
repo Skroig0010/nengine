@@ -44,7 +44,7 @@ class Collision
         // 分離軸探索
         var normalIndex = 0;
         var separation = Math.NEGATIVE_INFINITY;
-        var radius = circleB.radius;
+        var radius = polyA.radius + circleB.radius;
         var vertices = polyA.vertices;
         var normals = polyA.normals;
 
@@ -69,7 +69,7 @@ class Collision
         var vertex1 = vertices[vertIndex1];
         var vertex2 = vertices[vertIndex2];
 
-        if(separation < 0)
+        if(separation < Settings.epsilon)
         {
             return Manifold.FaceA(
                     [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})], 
@@ -114,23 +114,25 @@ class Collision
             polyA:PolygonShape, transformA:Transform2,
             polyB:PolygonShape, transformB:Transform2):Manifold
     {
+        var totalRadius = polyA.radius + polyB.radius;
         var temp1 = findMaxSeparation(polyA, transformA, polyB, transformB);
         var edgeA = temp1.bestIndex;
         var separationA = temp1.maxSeparation;
-        if(separationA > 0) return Manifold.None;
+        if(separationA > totalRadius) return Manifold.None;
 
         temp1 = findMaxSeparation(polyB, transformB, polyA, transformA);
         var edgeB = temp1.bestIndex;
         var separationB = temp1.maxSeparation;
-        if(separationB > 0) return Manifold.None;
+        if(separationB > totalRadius) return Manifold.None;
 
         var poly1, poly2:PolygonShape;
         var transform1, transform2:Transform2;
         var edge1:Int;
         var flip:Bool;
         var faceA:Bool;
+        final tol = 0.1 * Settings.linearSlop;
 
-        if(separationB > separationA)
+        if(separationB > separationA + tol)
         {
             poly1 = polyB;
             poly2 = polyA;
@@ -175,8 +177,8 @@ class Collision
         var frontOffset = normal.dot(v11);
         
         //side offset
-        var sideOffset1 = -(tangent.dot(v11));
-        var sideOffset2 = tangent.dot(v12);
+        var sideOffset1 = -(tangent.dot(v11)) + totalRadius;
+        var sideOffset2 = tangent.dot(v12) + totalRadius;
 
         var clipPoints = clipSegmentToLine(incidentEdges, -tangent, sideOffset1, iv1);
         if(clipPoints.length < 2) return Manifold.None;
@@ -188,17 +190,30 @@ class Collision
         for(index in 0...maxManifoldPoints)
         {
             var separation = normal.dot(clipPoints[index].vertex) - frontOffset;
-            var mp = new ManifoldPoint( transform2 * clipPoints[index].vertex,
+            if(separation <= totalRadius){
+                var mp = new ManifoldPoint( Transform2.mulXT(transform2, clipPoints[index].vertex),
                         0, 0, clipPoints[index].contactFeature);
-            if(flip)
-            {
-                var temp = mp.contactFeature.a;
-                mp.contactFeature.a = mp.contactFeature.b;
-                mp.contactFeature.b = temp;
+                if(flip)
+                {
+                    var temp = mp.contactFeature.a;
+                    mp.contactFeature.a = mp.contactFeature.b;
+                    mp.contactFeature.b = temp;
+                }
+                points.push(mp);
             }
-            points.push(mp);
         }
-        return if(faceA) Manifold.FaceA(points, localNormal, planePoint) else Manifold.FaceB(points, localNormal, planePoint);
+        return if(points.length == 0)
+        {
+            Manifold.None;
+        }
+        else if(faceA)
+        {
+            Manifold.FaceA(points, localNormal, planePoint);
+        }
+        else
+        {
+            Manifold.FaceB(points, localNormal, planePoint);
+        }
     }
 
     private static function clipSegmentToLine(vIn:Array<ClipVertex>, normal:Vec2, offset:Float, vertexIndexA:Int):Array<ClipVertex>
