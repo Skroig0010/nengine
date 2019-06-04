@@ -23,7 +23,7 @@ class PositionSolverManifold
                 separation = (pointB - pointA).dot(normal) - pc.radiusA - pc.radiusB;
 
             case FaceA(points, localNormal, localPoint):
-                normal = transformA.rotation * pc.localPoint;
+                normal = transformA.rotation * pc.localNormal;
                 var planePoint = transformA * pc.localPoint;
 
                 var clipPoint = transformB * pc.localPoints[index];
@@ -31,7 +31,7 @@ class PositionSolverManifold
                 point = clipPoint;
 
             case FaceB(points, localNormal, localPoint):
-                normal = transformB.rotation * pc.localPoint;
+                normal = transformB.rotation * pc.localNormal;
                 var planePoint = transformB * pc.localPoint;
 
                 var clipPoint = transformA * pc.localPoints[index];
