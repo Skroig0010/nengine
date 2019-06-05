@@ -539,7 +539,7 @@ class ContactSolver
                 minSeparation = Math.min(minSeparation, separatiton);
 
                 // prevent large corrections and allow slop
-                var c = Math2.clamp(Settings.baumgarte * (separatiton + Settings.linearSlop), Settings.maxLinearCorrection, 0.0);
+                var c = Math2.clamp(Settings.baumgarte * (separatiton + Settings.linearSlop), 0.0, -Settings.maxLinearCorrection);
 
                 // compute the effective mass
                 var rnA = rA.cross(normal);

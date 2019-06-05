@@ -18,8 +18,8 @@ import nengine.physics.dynamics.Velocity;
 class PhysicsSystem implements System
 {
     public var world:World;
-    public var velocityIterations = 2;
-    public var positionIterations = 2;
+    public var velocityIterations = 10;
+    public var positionIterations = 10;
     public var flags:Int = 0;
     public var gravity = new Vec2();
 
