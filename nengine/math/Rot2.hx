@@ -35,7 +35,7 @@ abstract Rot2(Rot2Data) from Rot2Data to Rot2Data
     {
         var qr = new Rot2();
         qr.s = q.s * r.c + q.c * r.s;
-        qr.c = q.c * r.c - q.s + r.s;
+        qr.c = q.c * r.c - q.s * r.s;
         return qr;
     }
 
@@ -43,7 +43,7 @@ abstract Rot2(Rot2Data) from Rot2Data to Rot2Data
     {
         var qr = new Rot2();
         qr.s = q.c * r.s - q.s * r.c;
-        qr.c = q.c * r.c + q.s + r.s;
+        qr.c = q.c * r.c + q.s * r.s;
         return qr;
     }
 

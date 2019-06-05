@@ -22,7 +22,7 @@ class WorldManifold
                 if(Vec2.distanceSq(pointA, pointB) > 0.001)
                 {
                     normal = pointB - pointA;
-                    normal.normalize();
+                    normal = normal.normalize();
                 }
                 var cA = pointA + radiusA * normal;
                 var cB = pointB - radiusB * normal;

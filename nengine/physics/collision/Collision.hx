@@ -257,13 +257,13 @@ class Collision
         var maxSeparation:Float = Math.NEGATIVE_INFINITY;
         for(index in 0...verticesA.length)
         {
-            var n = transform.rotation * normalsA[index];
-            var v1 = transform * verticesA[index];
+            var nA = transform.rotation * normalsA[index];
+            var vA = transform * verticesA[index];
 
             var si:Float = Math.POSITIVE_INFINITY;
             for(vB in verticesB)
             {
-                var sij = n.dot(vB - v1);
+                var sij = nA.dot(vB - vA);
                 if(sij < si)
                 {
                     si = sij;

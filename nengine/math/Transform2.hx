@@ -25,14 +25,14 @@ abstract Transform2(Transform2Data) from Transform2Data to Transform2Data
     public static inline function mul(t1:Transform2, t2:Transform2):Transform2
     {
         return new Transform2(
-                t1.rotation * t2.position + t1.position,
+                t1 * t2.position,
                 t1.rotation * t2.rotation);
     }
 
     public static inline function mulT(t1:Transform2, t2:Transform2):Transform2
     {
         return new Transform2(
-                t1.rotation * (t2.position - t1.position),
-                t1.rotation * t2.rotation);
+                Transform2.mulXT(t1, t2.position),
+                Rot2.mulT(t1.rotation, t2.rotation));
     }
 }

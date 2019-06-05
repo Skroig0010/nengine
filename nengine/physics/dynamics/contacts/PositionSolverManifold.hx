@@ -18,7 +18,7 @@ class PositionSolverManifold
                 var pointA = transformA * pc.localPoint;
                 var pointB = transformB * pc.localPoints[0];
                 normal = pointB - pointA;
-                normal.normalize();
+                normal = normal.normalize();
                 point = 0.5 * (pointA + pointB);
                 separation = (pointB - pointA).dot(normal) - pc.radiusA - pc.radiusB;
 
