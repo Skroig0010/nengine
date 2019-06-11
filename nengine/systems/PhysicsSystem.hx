@@ -233,13 +233,15 @@ class PhysicsSystem implements System
             var rotation = body.transform.rotation;
             var linearVelocity = body.linearVelocity;
             var angularVelocity = body.angularVelocity;
-            if(body.type == DynamicBody)
+            switch(body.type)
             {
+                case DynamicBody:
                 linearVelocity += dt * (body.gravityScale * gravity + body.invMass * body.force);
                 angularVelocity += dt * body.invInertia * body.torque;
                 // 空気抵抗による減衰の適用
                 linearVelocity *= 1.0 / (1.0 + dt * body.linearDamping);
                 angularVelocity *= 1.0 / (1.0 + dt * body.angularDamping);
+                case StaticBody | KinematicBody:
             }
             if(positions.length <= index) positions.push(new Position());
             positions[index].c = position;
@@ -323,7 +325,12 @@ class PhysicsSystem implements System
         // Synchronize fixtures, check for out of range bodies.
         for(body in bodies)
         {
-            if(body.type == StaticBody)continue;
+            switch(body.type)
+            {
+                case StaticBody:
+                    continue;
+                case DynamicBody | KinematicBody:
+            }
             synchronizeShapes(body);
         }
 

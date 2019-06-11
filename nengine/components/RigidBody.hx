@@ -44,11 +44,13 @@ class RigidBody implements Component
 
         this.type = type;
         resetMassData();
-        if(this.type == StaticBody)
+        switch(this.type)
         {
+            case StaticBody:
             linearVelocity.setZero;
             angularVelocity = 0.0;
             system.synchronizeShapes(this);
+            case DynamicBody | KinematicBody:
         }
         force.setZero();
         torque = 0.0;
@@ -134,7 +136,7 @@ class RigidBody implements Component
         localCenter.setZero();
         switch(type)
         {
-            case StaticBody:
+            case StaticBody | KinematicBody:
                 return;
             case DynamicBody:
                 // accumulate mass over all shapes
