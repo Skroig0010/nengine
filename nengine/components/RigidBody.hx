@@ -181,33 +181,67 @@ class RigidBody implements Component
                 linearVelocity += Vec2.crossFV(angularVelocity, transform * localCenter - oldCenter);
 
         }
-
     }
 
-    public function getAABB(transform:Transform2):AABB2
+    public inline function applyForce(force:Vec2, point:Vec2):Void
     {
-        var upperBound:Vec2 = null;
-        var lowerBound:Vec2 = null;
-        for(shape in shapes)
+        switch(type)
         {
-            var shapeAABB = shape.computeAABB(transform);
-            if(upperBound == null)
-            {
-                upperBound = shapeAABB.upperBound;
-            }
-            else
-            {
-                upperBound = Vec2.min(shapeAABB.upperBound, upperBound);
-            }
-            if(lowerBound == null)
-            {
-                lowerBound = shapeAABB.lowerBound;
-            }
-            else
-            {
-                lowerBound = Vec2.max(shapeAABB.lowerBound, lowerBound);
-            }
+            case DynamicBody:
+                this.force += force;
+                this.torque += (point - transform * localCenter).cross(force);
+            case StaticBody | KinematicBody:
         }
-        return new AABB2(upperBound, lowerBound);
+    }
+
+    public inline function applyForceToCenter(force:Vec2):Void
+    {
+        switch(type)
+        {
+            case DynamicBody:
+                this.force += force;
+            case StaticBody | KinematicBody:
+        }
+    }
+
+    public inline function applyTorque(torque:Float):Void
+    {
+        switch(type)
+        {
+            case DynamicBody:
+                this.torque += torque;
+            case StaticBody | KinematicBody:
+        }
+    }
+
+    public inline function applyLinearImpulse(impulse:Vec2, point:Vec2):Void
+    {
+        switch(type)
+        {
+            case DynamicBody:
+                linearVelocity += invMass * impulse;
+                angularVelocity += invInertia * (point - transform * localCenter).cross(impulse);
+            case StaticBody | KinematicBody:
+        }
+    } 
+
+    public inline function applyLinearImpulseToCenter(impulse:Vec2):Void
+    {
+        switch(type)
+        {
+            case DynamicBody:
+                linearVelocity += invMass * impulse;
+            case StaticBody | KinematicBody:
+        }
+    } 
+
+    public inline function applyAngularImpulse(impulse:Float, point:Vec2):Void
+    {
+        switch(type)
+        {
+            case DynamicBody:
+                angularVelocity += invInertia * impulse;
+            case StaticBody | KinematicBody:
+        }
     }
 }
