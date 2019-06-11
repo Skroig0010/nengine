@@ -20,7 +20,6 @@ class PhysicsSystem implements System
     public var world:World;
     public var velocityIterations = 10;
     public var positionIterations = 10;
-    public var flags:Int = 0;
     public var gravity = new Vec2();
 
     private var contactManager:ContactManager;
@@ -37,14 +36,13 @@ class PhysicsSystem implements System
     private var removedBodies = new List<RigidBody>();
     private var removedShapes = new List<Shape>();
     
-    public static inline var newShapeFlag = 0x0001;
-    public static inline var lockedFlag = 0x0002;
-    public static inline var clearForcesFlag = 0x0004;
+    public var newShapeFlag:Bool = false;
+    public var lockedFlag:Bool = false;
+    public var clearForcesFlag:Bool = false;
 
     public function new(world:World, area:AABB2, unit:AABB2)
     {
-        world.addSystem(this);
-
+        this.world = world;
         // quadtreeレベル推定
         var areaSize = area.lowerBound - area.upperBound;
         var unitSize = unit.lowerBound - unit.upperBound;
@@ -81,7 +79,7 @@ class PhysicsSystem implements System
     private function addBody(body:RigidBody):Void
     {
         // ロックされていたら別の場所に避難
-        if(flags & lockedFlag != 0)
+        if(lockedFlag)
         {
             addedBodies.add(body);
         }
@@ -95,7 +93,7 @@ class PhysicsSystem implements System
     private function destroyBody(body:RigidBody):Void
     {
         // ロックされていたら別の場所に避難
-        if(flags & lockedFlag != 0)
+        if(lockedFlag)
         {
             removedBodies.add(body);
         }
@@ -120,7 +118,7 @@ class PhysicsSystem implements System
     public function addShape(shape:Shape, transform:Transform2):Void
     {
         // ロックされていたら別の場所に避難
-        if(flags & lockedFlag != 0)
+        if(lockedFlag)
         {
             addedShapes.add({
                 shape:shape,
@@ -130,7 +128,7 @@ class PhysicsSystem implements System
         else
         {
             contactManager.broadPhase.addShape(shape, transform);
-            flags |= newShapeFlag;
+            newShapeFlag = true;
         }
     }
 
@@ -138,7 +136,7 @@ class PhysicsSystem implements System
     public function removeShape(shape:Shape):Void
     {
         // ロックされていたら別の場所に避難
-        if(flags & lockedFlag != 0)
+        if(lockedFlag)
         {
             removedShapes.add(shape);
         }
@@ -157,16 +155,15 @@ class PhysicsSystem implements System
         }
     }
 
-
     public function update(dt:Float):Void
     {
-        if(flags & newShapeFlag != 0)
+        if(newShapeFlag)
         {
             contactManager.findNewContacts();
-            flags &= ~newShapeFlag;
+            newShapeFlag = false;
         }
 
-        flags |= lockedFlag;
+        lockedFlag = true;
 
         var step = new TimeStep();
         step.dt = dt;
@@ -192,7 +189,7 @@ class PhysicsSystem implements System
             prevInvDt = step.invDt;
         }
 
-        if(flags & clearForcesFlag != 0)
+        if(clearForcesFlag)
         {
             clearForces();
         }
@@ -203,7 +200,7 @@ class PhysicsSystem implements System
             if(entity.hasComponent(Transform.componentName))entity.getComponent(Transform).global = body.transform;
         }
 
-        flags &= ~lockedFlag;
+        lockedFlag = false;
 
         // 追加や削除できなかったBodyやShapeを追加
         addedBodies.iter(addBody);

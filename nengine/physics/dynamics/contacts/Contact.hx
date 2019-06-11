@@ -15,18 +15,17 @@ class Contact
     public var next:Contact;
     public var nodeA = new ContactEdge();
     public var nodeB = new ContactEdge();
-    public var flags:Int = 0;
     public var friction:Float;
     public var restitution:Float;
     public var tangentSpeed:Float = 0;
 
     // flags
-    public static inline var islandFlag = 0x0001;
-    public static inline var touchingFlag = 0x0002;
-    public static inline var enabledFlag = 0x0004;
-    public static inline var filterFlag = 0x0008;
-    public static inline var bulletHitFlag = 0x0010;
-    public static inline var toiFlag = 0x0020;
+    public var islandFlag:Bool = false;
+    public var touchingFlag:Bool = false;
+    public var enabledFlag:Bool = false;
+    public var filterFlag:Bool = false;
+    public var bulletHitFlag:Bool = false;
+    public var toiFlag:Bool = false;
 
     public static function create(shapeA:Shape, shapeB:Shape):Contact
     {
@@ -70,7 +69,7 @@ class Contact
     {
         var oldManifold = manifold;
         var touching = false;
-        var wasTouching = (flags & touchingFlag) != 0;
+        var wasTouching = touchingFlag;
         var sensor = shapeA.isSensor || shapeB.isSensor;
         var transformA = shapeA.body.transform;
         var transformB = shapeB.body.transform;
@@ -98,7 +97,7 @@ class Contact
             });
         }
 
-        flags = if(touching) flags | touchingFlag else flags & ~touchingFlag;
+        touchingFlag = touching;
 
         if(!wasTouching && touching && listener != null)
         {

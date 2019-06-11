@@ -8,7 +8,10 @@ using Lambda;
 class AISystem implements System
 {
     public var world:World;
-    public function new() { }
+    public function new(world:World) 
+    {
+        this.world = world;
+    }
 
     public function update(dt:Float)
     {

@@ -22,7 +22,7 @@ class ContactSolver
         var index = 0;
         while(contact != null)
         {
-            if(contact.flags & Contact.touchingFlag == 0) 
+            if(!contact.touchingFlag) 
             {
                 contact = contact.next;
                 continue;
@@ -334,8 +334,7 @@ class ContactSolver
                 final errorTol = 1e-3;
 #end
                 // TODO:ここwhile使ってるのgotoしないためだけなので何かしらきれいにする方法はないものか
-                while(true)
-                {
+                var temp = () -> {
                     var x = -(vc.normalMass * b);
 
                     if(x.x >= 0.0 && x.y >= 0.0)
@@ -369,7 +368,7 @@ class ContactSolver
                         Settings.assert(Math.abs(vn1 - cp1.velocityBias) < errorTol);
                         Settings.assert(Math.abs(vn2 - cp2.velocityBias) < errorTol);
 #end
-                        break;
+                        return;
                     }
 
                     // case 2
@@ -404,7 +403,7 @@ class ContactSolver
 
                         Settings.assert(Math.abs(vn1 - cp1.velocityBias) < errorTol);
 #end
-                        break;
+                        return;
                     }
 
                     // case 3
@@ -438,7 +437,7 @@ class ContactSolver
 
                         Settings.assert(Math.abs(vn2 - cp2.velocityBias) < errorTol);
 #end
-                        break;
+                        return;
                     }
 
                     // case 4
@@ -465,12 +464,10 @@ class ContactSolver
                         cp1.normalImpulse = x.x;
                         cp2.normalImpulse = x.y;
 
-                        break;
+                        return;
                     }
-
-                    // no solution
-                    break;
-                }
+                };
+                temp();
             }
             velocities[indexA].v = vA;
             velocities[indexA].w = wA;

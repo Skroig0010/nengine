@@ -31,7 +31,7 @@ class ContactManager
         var bodyA = shapeA.body;
         var bodyB = shapeB.body;
 
-        if(contactListener != null && (contact.flags & Contact.touchingFlag) != 0)
+        if(contactListener != null && contact.touchingFlag)
         {
             contactListener.endContact(contact);
         }
@@ -95,7 +95,7 @@ class ContactManager
             var bodyA = shapeA.body;
             var bodyB = shapeB.body;
 
-            if(contact.flags & Contact.filterFlag != 0)
+            if(contact.filterFlag)
             {
                 switch(contactFilter)
                 {
@@ -110,7 +110,7 @@ class ContactManager
                     case None:
                 }
             }
-            contact.flags &= ~Contact.filterFlag;
+            contact.filterFlag = false;
 
             var overlap = Collision.collideAABBs(shapeA.cell.fatAABB, shapeB.cell.fatAABB);
 

@@ -38,8 +38,8 @@ class RigidBody implements Component
     @:isVar public var type(default, set):BodyType = DynamicBody;
     private function set_type(type:BodyType):BodyType
     {
-        Settings.assert(system.flags & PhysicsSystem.lockedFlag == 0);
-        if(system.flags & PhysicsSystem.lockedFlag != 0) return this.type;
+        Settings.assert(!system.lockedFlag);
+        if(system.lockedFlag) return this.type;
         if(this.type == type) return type;
 
         this.type = type;
@@ -73,7 +73,6 @@ class RigidBody implements Component
         return this.type;
 
     }
-    public var flags:Int = 0;
 
     public var system:PhysicsSystem;
 
@@ -81,7 +80,7 @@ class RigidBody implements Component
     public var index:Int = 0;
 
     // flags
-    public static inline var fixedRotationFlag = 0x0010;
+    public var fixedRotationFlag:Bool = false;
 
     private inline function invOr0(value:Float):Float
     {
@@ -162,7 +161,7 @@ class RigidBody implements Component
                     invMass = 1.0;
                 }
 
-                if(inertia > 0.0 && (flags & fixedRotationFlag) == 0)
+                if(inertia > 0.0 && !fixedRotationFlag)
                 {
                     // center the inertia about the center of mass
                     inertia -= mass * localCenter.dot(localCenter);

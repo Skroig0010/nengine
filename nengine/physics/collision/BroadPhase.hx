@@ -83,6 +83,7 @@ class BroadPhase
 
     public function updatePairs(callback:HitCallback):Void
     {
+        pairs = [];
         for(shape in movedShapes)
         {
             quadTree.checkHit(shape, queryCallback);
