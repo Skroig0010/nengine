@@ -12,16 +12,18 @@ class CircleShape implements Shape
     public var body:RigidBody;
     public var cell(default, null):ShapeCell;
     public var id(default, null):Int;
-    public var friction:Float = 0.2;
-    public var restitution:Float = 0.0;
-    public var density:Float = 0.0;
+    public var friction:Float;
+    public var restitution:Float;
+    public var density:Float;
 
-    public function new(position:Vec2, radius:Float, density:Float)
+    public function new(position:Vec2, radius:Float, density:Float = 0.0, friction:Float = 0.2, restitution:Float = 0.0, isSensor:Bool = false)
     {
         this.position = position;
         this.radius = radius;
-        this.isSensor = false;
+        this.isSensor = isSensor;
         this.density = density;
+        this.friction = friction;
+        this.restitution = restitution;
         cell = new ShapeCell(this);
         id = ShapeIdCounter.getId();
     }
@@ -37,7 +39,7 @@ class CircleShape implements Shape
     public function computeMass():MassData
     {
         var massData = new MassData();
-        massData.mass = density * Settings.pi * radius * radius;
+        massData.mass = density * Math.PI * radius * radius;
         massData.center = position;
 
         // inertia about the local origin

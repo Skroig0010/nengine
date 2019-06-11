@@ -122,7 +122,7 @@ class RigidBody implements Component
         resetMassData();
     }
 
-    public function iterator():Iterator<Shape>
+    public inline function iterator():Iterator<Shape>
     {
         return shapes.iterator();
     }
