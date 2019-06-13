@@ -333,8 +333,8 @@ class ContactSolver
 #if debugSolver
                 final errorTol = 1e-3;
 #end
-                // TODO:ここwhile使ってるのgotoしないためだけなので何かしらきれいにする方法はないものか
-                var temp = () -> {
+                do
+                {
                     var x = -(vc.normalMass * b);
 
                     if(x.x >= 0.0 && x.y >= 0.0)
@@ -368,7 +368,7 @@ class ContactSolver
                         Settings.assert(Math.abs(vn1 - cp1.velocityBias) < errorTol);
                         Settings.assert(Math.abs(vn2 - cp2.velocityBias) < errorTol);
 #end
-                        return;
+                        break;
                     }
 
                     // case 2
@@ -403,7 +403,7 @@ class ContactSolver
 
                         Settings.assert(Math.abs(vn1 - cp1.velocityBias) < errorTol);
 #end
-                        return;
+                        break;
                     }
 
                     // case 3
@@ -437,7 +437,7 @@ class ContactSolver
 
                         Settings.assert(Math.abs(vn2 - cp2.velocityBias) < errorTol);
 #end
-                        return;
+                        break;
                     }
 
                     // case 4
@@ -451,7 +451,7 @@ class ContactSolver
                         // resubstitute for the incremental impulse
                         var d = x - a;
 
-                         // apply incremental impulse
+                        // apply incremental impulse
                         var p1 = d.x * normal;
                         var p2 = d.y * normal;
                         vA -= mA * (p1 + p2);
@@ -464,10 +464,10 @@ class ContactSolver
                         cp1.normalImpulse = x.x;
                         cp2.normalImpulse = x.y;
 
-                        return;
+                        break;
                     }
-                };
-                temp();
+                }
+                while(false);
             }
             velocities[indexA].v = vA;
             velocities[indexA].w = wA;
@@ -506,7 +506,7 @@ class ContactSolver
             var localCenterB = pc.localCenterB;
             var mB = pc.invMassB;
             var iB = pc.invInertiaB;
-            
+
             var cA = positions[indexA].c;
             var aA = positions[indexA].a;
 

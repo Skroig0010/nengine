@@ -6,16 +6,18 @@ import nengine.components.RigidBody;
 class PolygonShape implements Shape
 {
     public var type(default, never) = ShapeType.Polygon;
-    public var vertices = new Array<Vec2>();
-    public var normals = new Array<Vec2>();
-    public var isSensor:Bool;
     public var body:RigidBody;
+    public var isSensor:Bool;
     public var cell(default, null):ShapeCell;
-    public var id(default, null):Int;
     public var friction:Float;
     public var restitution:Float;
     public var density:Float;
     public var radius:Float = 0.05;
+    // 比較用
+    public var id(default, null):Int;
+
+    public var vertices = new Array<Vec2>();
+    public var normals = new Array<Vec2>();
 
     public function new(vertices:Array<Vec2>, normals:Array<Vec2>, density:Float, friction:Float, restitution:Float, isSensor:Bool)
     {

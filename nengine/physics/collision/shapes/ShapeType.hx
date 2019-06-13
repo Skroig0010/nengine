@@ -4,4 +4,5 @@ enum ShapeType
 {
     Circle;
     Polygon;
+    // Edge;
 }

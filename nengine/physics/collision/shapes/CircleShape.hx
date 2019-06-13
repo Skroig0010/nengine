@@ -6,15 +6,17 @@ import nengine.components.RigidBody;
 class CircleShape implements Shape
 {
     public var type(default, never) = ShapeType.Circle;
-    public var radius:Float;
-    public var position:Vec2;
-    public var isSensor:Bool;
     public var body:RigidBody;
+    public var isSensor:Bool;
     public var cell(default, null):ShapeCell;
-    public var id(default, null):Int;
     public var friction:Float;
     public var restitution:Float;
     public var density:Float;
+    public var radius:Float;
+    // 比較用
+    public var id(default, null):Int;
+
+    public var position:Vec2;
 
     public function new(position:Vec2, radius:Float, density:Float = 0.0, friction:Float = 0.2, restitution:Float = 0.0, isSensor:Bool = false)
     {
