@@ -10,18 +10,27 @@ nengine.components.AIContainer
 nengine.components.RigidBody
 nengine.components.Transform
 
+nengine.math.planeSweep.Event
+nengine.math.planeSweep.EventQueue
+nengine.math.planeSweep.Intersection
+nengine.math.planeSweep.IntersectionDetector
 nengine.math.AABB2
 nengine.math.Mat22
 nengine.math.Mat22Data
 nengine.math.Math2
+nengine.math.OrderedSet
+nengine.math.RedBlackTree
 nengine.math.Rot2
 nengine.math.Rot2Data
+nengine.math.Segment2
+nengine.math.Set
 nengine.math.Transform2
 nengine.math.Transform2Data
 nengine.math.Vec2
 nengine.math.Vec2Data
 
 nengine.physics.collision.shapes.CircleShape
+nengine.physics.collision.shapes.EdgeShape
 nengine.physics.collision.shapes.MassData
 nengine.physics.collision.shapes.PolygonShape
 nengine.physics.collision.shapes.Shape
@@ -30,9 +39,13 @@ nengine.physics.collision.shapes.ShapeType
 
 nengine.physics.collision.BroadPhase
 nengine.physics.collision.ClipVertex
+nengine.physics.collision.CollideCircle
+nengine.physics.collision.CollideEdge
+nengine.physics.collision.CollidePolygon
 nengine.physics.collision.Collision
 nengine.physics.collision.ContactFeature
 nengine.physics.collision.ContactType
+nengine.physics.collision.EdgePolygonCollider
 nengine.physics.collision.HitCallback
 nengine.physics.collision.Manifold
 nengine.physics.collision.ManifoldFunction
@@ -62,5 +75,8 @@ nengine.physics.dynamics.WorldManifold
 
 nengine.systems.AISystem
 nengine.systems.PhysicsSystem
+
+nengine.util.OptionTools
+nengine.util.Settings
 
 -js build/nengine.js

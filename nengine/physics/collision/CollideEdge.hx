@@ -4,6 +4,7 @@ import nengine.math.*;
 
 class CollideEdge
 {
+    /*
     public static function collideEdgeAndCircle(
             circleA:CircleShape, transformA:Transform2, 
             edgeB:EdgeShape, transformB:Transform2):Manifold
@@ -110,11 +111,12 @@ class CollideEdge
                 n, vertexA);
     }
 
-    public static collideEdgeAndPolygon(
+    public static function collideEdgeAndPolygon(
             edgeA:EdgeShape, transformA:Transform2, 
             polyB:EdgeShape, transformB:Transform2):Manifold
     {
         var collider = new EdgePolygonCollider();
         collider.collide(edgeA, transformA, polyB, transformB);
     }
+    */
 }
