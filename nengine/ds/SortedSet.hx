@@ -1,6 +1,6 @@
-package nengine.math;
+package nengine.ds;
 
-interface OrderedSet<T> extends Set<T>
+interface SortedSet<T> extends Set<T>
 {
     public function first():Option<T>;
     public function last():Option<T>;

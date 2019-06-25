@@ -1,4 +1,5 @@
 package nengine.math.planeSweep;
+import nengine.ds.*;
 
 interface IntersectionDetector
 {

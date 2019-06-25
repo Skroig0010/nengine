@@ -1,73 +1,31 @@
-package nengine.math;
+package nengine.ds;
 
-class RedBlackTree<T> implements OrderedSet<T>
+class RedBlackTree<T> implements NavigableSet<T>
 {
     private final root:TreeNode<T>;
+    public var compare:T->T->Int = Reflect.compare;
 
-    public function new(root:TreeNode<T> = Leaf) 
+    public function new(?compare:T->T->Int, root:TreeNode<T> = Leaf) 
     {
         this.root = root;
+        this.compare = if(compare != null) compare else Reflect.compare;
     }
 
-    private inline function rotateL(node:TreeNode<T>):TreeNode<T>
+    public function add(value:T):RedBlackTree<T>
     {
-        return switch(node)
-        {
-            case Node(c1, t1, v1, Node(c2, t2, v2, t3)):
-                Node(c2, Node(c1, t1, v1, t2), v2, t3);
-            default:
-                throw {msg:"rotateL failed", node:node, tree:this};
-        }
+        return new RedBlackTree(compare, makeBlack(ins(root, value)));
     }
 
-    private inline function rotateR(node:TreeNode<T>):TreeNode<T>
-    {
-        return switch(node)
-        {
-            case Node(c2, Node(c1, t1, v1, t2), v2, t3):
-                Node(c1, t1, v1, Node(c2, t2, v2, t3));
-            default:
-                throw {msg:"rotateR failed", node:node, tree:this};
-        }
-    }
-
-    private inline function rotateLR(node:TreeNode<T>):TreeNode<T>
-    {
-        return switch(node)
-        {
-            case Node(c5, Node(c1, t1, v1, Node(c3, t2, v3, t3)), v5, t4):
-                Node(c3, Node(c1, t1, v1, t2), v3, Node(c5, t3, v5, t4));
-            default:
-                throw {msg:"rotateLR failed", node:node, tree:this};
-        }
-    }
-
-    private inline function rotateRL(node:TreeNode<T>):TreeNode<T>
-    {
-        return switch(node)
-        {
-            case Node(c1, t1, v1, Node(c5, Node(c3, t2, v3, t3), v5, t4)):
-                Node(c3, Node(c1, t1, v1, t2), v3, Node(c5, t3, v5, t4));
-            default:
-                throw {msg:"rotateRL failed", node:node, tree:this};
-        }
-    }
-
-    public function add(value:T, compare:T -> T -> Int):RedBlackTree<T>
-    {
-        return new RedBlackTree(makeBlack(ins(root, value, compare)));
-    }
-
-    private function ins(node:TreeNode<T>, v1:T, compare:T -> T -> Int):TreeNode<T>
+    private function ins(node:TreeNode<T>, v1:T):TreeNode<T>
     {
         return switch(node) 
         {
             case Node(c, t1, v2, t2) if(compare(v1, v2) < 0):
-                balance(Node(c, ins(t1, v1, compare), v2, t2));
+                balance(Node(c, ins(t1, v1), v2, t2));
             case Node(c, t1, v2, t2) if(compare(v1, v2) == 0):
                 node;
             case Node(c, t1, v2, t2):
-                balance(Node(c, t1, v2, ins(t2, v1, compare)));
+                balance(Node(c, t1, v2, ins(t2, v1)));
             case Leaf:
                 Node(Red, Leaf, v1, Leaf);
         }
@@ -100,19 +58,19 @@ class RedBlackTree<T> implements OrderedSet<T>
         }
     }
 
-    public function remove(value:T, compare:T -> T -> Int):RedBlackTree<T>
+    public function remove(value:T):RedBlackTree<T>
     {
-        return new RedBlackTree(makeBlack(del(root, value, compare)));
+        return new RedBlackTree(compare, makeBlack(del(root, value)));
     }
 
-    private function del(node:TreeNode<T>, v1:T, compare:T -> T -> Int):TreeNode<T>
+    private function del(node:TreeNode<T>, v1:T):TreeNode<T>
     {
         return switch(node)
         {
             case Node(_, t1, v2, t2) if(compare(v1, v2) < 0):
-                delL(v1, node, compare);
+                delL(v1, node);
             case Node(_, t1, v2, t2) if(compare(v1, v2) > 0):
-                delR(v1, node, compare);
+                delR(v1, node);
             case Node(_, t1, v2, t2):
                 fuse(t1, t2);
             default:
@@ -120,14 +78,14 @@ class RedBlackTree<T> implements OrderedSet<T>
         }
     }
 
-    private function delL(v:T, node:TreeNode<T>, compare:T -> T -> Int):TreeNode<T>
+    private function delL(v:T, node:TreeNode<T>):TreeNode<T>
     {
         return switch(node)
         {
             case Node(Black, t1, v1, t2):
-                balL(Node(Black, del(t1, v, compare), v1, t2));
+                balL(Node(Black, del(t1, v), v1, t2));
             case Node(Red, t1, v1, t2):
-                Node(Red, del(t1, v, compare), v1, t2);
+                Node(Red, del(t1, v), v1, t2);
             default:
                 throw {msg:"delL failed", node:node, tree:this};
         }
@@ -148,14 +106,14 @@ class RedBlackTree<T> implements OrderedSet<T>
         }
     }
 
-    private function delR(v:T, node:TreeNode<T>, compare:T -> T -> Int):TreeNode<T>
+    private function delR(v:T, node:TreeNode<T>):TreeNode<T>
     {
         return switch(node)
         {
             case Node(Black, t1, v1, t2):
-                balR(Node(Black, t1, v1, del(t2, v, compare)));
+                balR(Node(Black, t1, v1, del(t2, v)));
             case Node(Red, t1, v1, t2):
-                Node(Red, t1, v1, del(t2, v, compare));
+                Node(Red, t1, v1, del(t2, v));
             default:
                 throw {msg:"delR failed", node:node, tree:this};
         }
@@ -211,7 +169,7 @@ class RedBlackTree<T> implements OrderedSet<T>
         }
     }
 
-    public function has(element:T, compare:T -> T -> Int):Bool
+    public function has(element:T):Bool
     {
         var node = root;
         while(true)
@@ -272,6 +230,188 @@ class RedBlackTree<T> implements OrderedSet<T>
             }
         }
         return nodeToOption(node);
+    }
+
+    public function lower(element:T):Option<T>
+    {
+        if(element == null)return last();
+
+        return nodeToOption(highestLessThan(element, false));
+    }
+
+    private function highestLessThan(element:T, equal:Bool):TreeNode<T>
+    {
+
+        var last = root;
+        var current = root;
+        var comparison = 0;
+        var parents = new List<TreeNode<T>>();
+
+        while(true)
+        {
+            last = current;
+            switch(current)
+            {
+                case Node(_, t1, v, t2):
+                    parents.push(current);
+                    comparison = compare(element, v);
+                    if(comparison > 0)
+                    {
+                        current = t2;
+                    }
+                    else if(comparison < 0)
+                    {
+                        current = t1;
+                    }
+                    else
+                    {
+                        parents.pop();
+                        return if(equal) last else predecessor(last, parents);
+                    }
+                case Leaf:
+                    break;
+            }
+        }
+        return if(comparison < 0) predecessor(last, parents) else last;
+    }
+
+    private function predecessor(node:TreeNode<T>, parents:List<TreeNode<T>>):TreeNode<T>
+    {
+        switch(node)
+        {
+            case Node(_, Leaf, _, _):
+                // 何もしない
+            case Node(_, t, _, _):
+                node = t;
+                // 右下最底部を探索
+                while(true)
+                {
+                    switch(node)
+                    {
+                        case Node(_, _, _, Leaf):
+                            return node;
+                        case Node(_, _, _, t):
+                            node = t;
+                        case Leaf:
+                            // 到達し得ない
+                            throw {msg:"predecessor failed in second switch", node:node, tree:this};
+                    }
+                }
+            case Leaf:
+                // 到達し得ない
+                throw {msg:"predecessor failed in first switch", node:node, tree:this};
+        }
+
+        var parent = parents.pop();
+        while(true)
+        {
+            switch(parent)
+            {
+                case Node(_, t, _, _) if(t == node):
+                    node = parent;
+                    parent = parents.pop();
+                case Node(_, _, _, _):
+                    break;
+                case Leaf:
+                    // 到達し得ない
+                    throw {msg:"predecessor failed in third switch", node:node, tree:this};
+                case null:
+                    // 親がいないので葉を返す
+                    return Leaf;
+
+            }
+        }
+        return parent;
+    }
+
+    public function higher(element:T):Option<T>
+    {
+        if(element == null)return None;
+
+        return nodeToOption(lowestGreaterThan(element, false));
+    }
+
+    private function lowestGreaterThan(element:T, equal:Bool):TreeNode<T>
+    {
+        var last  = root;
+        var current = root;
+        var comparison = 0;
+        var parents = new List<TreeNode<T>>();
+
+        while(true)
+        {
+            last = current;
+            switch(current)
+            {
+                case Node(_, t1, v, t2):
+                    parents.push(current);
+                    comparison = compare(element, v);
+                    if(comparison > 0)
+                    {
+                        current = t2;
+                    }
+                    else if(comparison < 0)
+                    {
+                        current = t1;
+                    }
+                    else 
+                    {
+                        parents.pop();
+                        return if(equal) current else successor(current, parents);
+                    }
+                case Leaf:
+                    break;
+            }
+        }
+        return if(comparison > 0) successor(last, parents) else last;
+    }
+
+    private function successor(node:TreeNode<T>, parents:List<TreeNode<T>>):TreeNode<T>
+    {
+        switch(node)
+        {
+            case Node(_, _, _, Leaf):
+                // 何もしない
+            case Node(_, _, _, t):
+                node = t;
+                // 左下最低部を探索
+                while(true)
+                {
+                    switch(node)
+                    {
+                        case Node(_, Leaf, _, _):
+                            return node;
+                        case Node(_, t, _, _):
+                            node = t;
+                        case Leaf:
+                            // 到達し得ない
+                            throw {msg:"successor failed in second switch", node:node, tree:this};
+                    }
+                }
+            case Leaf:
+                // 到達し得ない
+                throw {msg:"successor failed in first switch", node:node, tree:this};
+        }
+
+        var parent = parents.pop();
+        while(true)
+        {
+            switch(parent)
+            {
+                case Node(_, _, _, t) if(t == node):
+                    node = parent;
+                    parent = parents.pop();
+                case Node(_, _, _, _):
+                    break;
+                case Leaf:
+                    // 到達し得ない
+                    throw {msg:"successor failed in third switch", node:node, tree:this};
+                case null:
+                    // 親がいないので葉を返す
+                    return Leaf;
+            }
+        }
+        return parent;
     }
 }
 

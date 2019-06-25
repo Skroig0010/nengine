@@ -1,8 +1,8 @@
-package nengine.math;
+package nengine.ds;
 
 interface Set<T>
 {
-    public function add(element:T, compare:T -> T -> Int):Set<T>;
-    public function remove(element:T, compare:T -> T -> Int):Set<T>;
-    public function has(element:T, compare:T -> T -> Int):Bool;
+    public function add(element:T):Set<T>;
+    public function remove(element:T):Set<T>;
+    public function has(element:T):Bool;
 }

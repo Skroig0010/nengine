@@ -14,6 +14,6 @@ class Intersection
 
     public function getIntersectionPoint():Option<Vec2>
     {
-        return Collision.collideSegments(segment1, segment2);
+        return Collision.getSegmentsIntersectionPoint(segment1, segment2);
     }
 }

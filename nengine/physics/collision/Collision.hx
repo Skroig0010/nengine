@@ -14,7 +14,7 @@ class Collision
             && aabbB.upperBound.y < aabbA.lowerBound.y;
     }
 
-    public static function collideSegments(segmentA:Segment2, segmentB:Segment2):Option<Vec2>
+    public static function getSegmentsIntersectionPoint(segmentA:Segment2, segmentB:Segment2):Option<Vec2>
     {
         var vA = segmentA.vertex2 - segmentA.vertex1;
         var vB = segmentB.vertex2 - segmentB.vertex1;
@@ -40,6 +40,46 @@ class Collision
         }
         
         return Some(segmentA.vertex1 + vA * t1);
+    }
+
+    public static function getLinesIntersectionPoint(line1:Line2, line2:Line2):Option<Vec2>
+    {
+        var d = line1.a * line2.b - line2.a * line1.b;
+        return if(d == 0.0)
+        {
+            None;
+        }
+        else
+        {
+            var x = (line1.b * line2.c - line1.c * line2.b) / d;
+            var y = (line1.a * line2.c - line1.c * line2.a) / d;
+            return Some(new Vec2(x, y));
+        }
+    }
+
+    public static inline function getLineAndSegmentIntersectionPoint(line1:Line2, segment2:Segment2):Option<Vec2>
+    {
+        return if(!collideLineAndSegment(line1, segment2))
+        {
+            None;
+        }
+        else
+        {
+            getLinesIntersectionPoint(line1, Segment2.toLine(segment2));
+        }
+    }
+
+    public static inline function collideLineAndSegment(line1:Line2, segment2:Segment2):Bool
+    {
+        var t1 = line1.a * segment2.vertex1.x + line1.b * segment2.vertex1.y + line1.c;
+        var t2 = line1.a * segment2.vertex2.x + line1.b * segment2.vertex2.y + line1.c;
+        return t1 * t2 <= 0;
+    }
+
+    public static inline function collideSegments(segment1:Segment2, segment2:Segment2):Bool
+    {
+        return collideLineAndSegment(Segment2.toLine(segment1), segment2)
+            && collideLineAndSegment(Segment2.toLine(segment2), segment1);
     }
 
     public static inline function getNextIndex(index:Int, length:Int):Int
