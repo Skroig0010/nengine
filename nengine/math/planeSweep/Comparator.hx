@@ -7,13 +7,13 @@ class Comparator
     {
         var point1 = getPoint(event1);
         var point2 = getPoint(event2);
-        return Std.int(if(point1.y == point2.y)
+        return Std.int(if(point1.y != point2.y)
         {
-            point1.x - point2.x;
+            point1.y - point2.y;
         }
         else
         {
-            point1.y - point2.y;
+            point1.x - point2.x;
         });
     }
 

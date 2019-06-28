@@ -4,7 +4,7 @@ import utest.Assert;
 import haxe.ds.Option;
 import nengine.ds.RedBlackTree;
 
-@:access(nengine.math.RedBlackTree)
+@:access(nengine.ds.RedBlackTree)
 class RedBlackTreeTest extends Test
 {
     public function testAdd()
@@ -35,23 +35,29 @@ class RedBlackTreeTest extends Test
         }
         for(i in 0...10)
         {
-            eset = eset.remove(i);
+            eset = eset.remove(9-i);
         }
         for(i in 0...10)
         {
             Assert.isFalse(eset.has(i));
         }
+        eset = eset.add(0);
+        eset = eset.add(1);
+        eset = eset.remove(1);
+        eset = eset.remove(0);
+        Assert.isFalse(eset.has(0));
+        Assert.isFalse(eset.has(1));
     }
 
     public function testLowerHigher()
     {
         var comp = (x, y)-> x-y;
         var eset = new RedBlackTree<Int>(comp);
-        for(i in 0...10)
+        for(i in 0...100)
         {
             eset = eset.add(i);
         }
-        for(i in 1...10)
+        for(i in 1...100)
         {
             switch(eset.lower(i))
             {
@@ -62,7 +68,7 @@ class RedBlackTreeTest extends Test
                     Assert.isTrue(false);
             }
         }
-        for(i in 0...9)
+        for(i in 0...99)
         {
             switch(eset.higher(i))
             {
@@ -74,6 +80,6 @@ class RedBlackTreeTest extends Test
             }
         }
         Assert.equals(None, eset.lower(0));
-        Assert.equals(None, eset.higher(9));
+        Assert.equals(None, eset.higher(99));
     }
 }

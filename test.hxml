@@ -2,6 +2,9 @@
 -lib utest
 
 -main test.TestRunner
+test.components.shapes.ShapeTest
+test.math.planeSweep.PlaneSweepIntersectionDetectorTest
+test.math.RedBlackTreeTest
 test.util.QuadTreeTest
 -js testbuild/test.js
 -cmd node testbuild/test.js

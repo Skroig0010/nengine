@@ -9,9 +9,13 @@ class PlaneSweepIntersectionDetector implements IntersectionDetector
     private var sweepLine = new Line2(0, -1, 0);
     private var belowLine = new Line2(0, -1, 0.1);
 
+    public function new()
+    {
+        setY(0);
+    }
+
     public function execute(segments:Array<Segment2>):Array<Intersection>
     {
-        // TODO:rbtreeはimmutableなのでそのへんでミスがないか調べる
         var eventQueue = new RedBlackTree<Event>(Comparator.compareEvent);
 
         for(segment in segments)
@@ -31,7 +35,7 @@ class PlaneSweepIntersectionDetector implements IntersectionDetector
 
         var status = new RedBlackTree<Segment2>(Comparator.compareLineSegmentBySweepLine.bind(sweepLine, belowLine));
 
-        var result:Array<Intersection> = [];
+        var result = new HashSet<Intersection>();
 
         var event = eventQueue.first();
         switch(event)
@@ -53,19 +57,25 @@ class PlaneSweepIntersectionDetector implements IntersectionDetector
                     var left = status.lower(segment1);
                     var right = status.higher(segment1);
                     // 左隣の線分との交差を調べる
-                    left.iter((left)->{
-                        eventQueue = checkIntersection(left, segment1, sweepY, eventQueue);
-                    });
+                    switch(left)
+                    {
+                        case Some(left):
+                            eventQueue = checkIntersection(left, segment1, sweepY, eventQueue);
+                        case None:
+                    }
                     // 右隣の線分との交差を調べる
-                    right.iter((right)->{
-                        eventQueue = checkIntersection(segment1, right, sweepY, eventQueue);
-                    });
+                    switch(right)
+                    {
+                        case Some(right):
+                            eventQueue = checkIntersection(segment1, right, sweepY, eventQueue);
+                        case None:
+                    }
                 case Some(Intersection(point, segment1, segment2)):
                     var sweepY = point.y;
                     var left = segment1;
                     var right = segment2;
                     // 交点返値に追加
-                    result.push(new Intersection(left, right));
+                    result.add(new Intersection(left, right));
 
                     var moreLeft = status.lower(left);
                     var moreRight = status.higher(right);
@@ -79,24 +89,31 @@ class PlaneSweepIntersectionDetector implements IntersectionDetector
                     status = status.add(right);
 
                     // right(今は左側)と更に左側の線分との交差を調べる
-                    moreLeft.iter((moreLeft)->{
-                        eventQueue = checkIntersection(moreLeft, right, sweepY, eventQueue);
-                    });
+                    switch(moreLeft)
+                    {
+                        case Some(moreLeft):
+                            eventQueue = checkIntersection(moreLeft, right, sweepY, eventQueue);
+                        case None:
+                    }
                     // left(今は右側)と更に右側の線分との交差を調べる
-                    moreRight.iter((moreRight)->{
-                        eventQueue = checkIntersection(left, moreRight, sweepY, eventQueue);
-                    });
+                    switch(moreRight)
+                    {
+                        case Some(moreRight):
+                            eventQueue = checkIntersection(left, moreRight, sweepY, eventQueue);
+                        case None:
+                    }
                 case Some(SegmentEnd(point, segment1)):
                     var sweepY = point.y;
                     var left = status.lower(segment1);
                     var right = status.higher(segment1);
 
                     // 線分の削除によって新しく隣り合う2線分の交差を調べる
-                    left.iter((left)->{
-                    right.iter((right)->{
-                        eventQueue = checkIntersection(left, right, sweepY, eventQueue);
-                    });
-                    });
+                    switch([left, right])
+                    {
+                        case [Some(left), Some(right)]:
+                            eventQueue = checkIntersection(left, right, sweepY, eventQueue);
+                        default:
+                    }
                     status = status.remove(segment1);
                     setY(sweepY);
                 case None:
@@ -110,8 +127,7 @@ class PlaneSweepIntersectionDetector implements IntersectionDetector
                 case None:
             }
         }
-        // TODO:resultの要素の重複を取り除く
-        return result;
+        return Lambda.array(result);
     }
 
     // leftとrightが走査線の下で交差するか調べ、交差する場合は交差イベントを登録
@@ -132,5 +148,34 @@ class PlaneSweepIntersectionDetector implements IntersectionDetector
     {
         sweepLine.c = y;
         belowLine.c = y + 0.1;
+    }
+}
+
+private class HashSet<T: { }> implements Set<T>
+{
+    private var map = new Map<T, Int>();
+
+    public function new(){}
+
+    public function add(element:T):Set<T>
+    {
+        map.set(element, 0);
+        return this;
+    }
+
+    public function remove(element:T):Set<T>
+    {
+        map.remove(element);
+        return this;
+    }
+
+    public function has(element:T):Bool
+    {
+        return map.exists(element);
+    }
+
+    public function iterator():Iterator<T>
+    {
+        return map.keys();
     }
 }

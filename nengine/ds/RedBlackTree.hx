@@ -67,12 +67,21 @@ class RedBlackTree<T> implements NavigableSet<T>
     {
         return switch(node)
         {
-            case Node(_, t1, v2, t2) if(compare(v1, v2) < 0):
-                delL(v1, node);
-            case Node(_, t1, v2, t2) if(compare(v1, v2) > 0):
-                delR(v1, node);
+            case Leaf:
+                Leaf;
             case Node(_, t1, v2, t2):
-                fuse(t1, t2);
+                if(compare(v1, v2) < 0)
+                {
+                    delL(v1, node);
+                }
+                else if(compare(v1, v2) > 0)
+                {
+                    delR(v1, node);
+                }
+                else
+                {
+                    fuse(t1, t2);
+                }
             default:
                 throw {msg:"del failed", node:node, tree:this};
         }
@@ -82,9 +91,9 @@ class RedBlackTree<T> implements NavigableSet<T>
     {
         return switch(node)
         {
-            case Node(Black, t1, v1, t2):
+            case Node(_, t1 = Node(Black, _, _, _), v1, t2):
                 balL(Node(Black, del(t1, v), v1, t2));
-            case Node(Red, t1, v1, t2):
+            case Node(_, t1, v1, t2):
                 Node(Red, del(t1, v), v1, t2);
             default:
                 throw {msg:"delL failed", node:node, tree:this};
@@ -110,9 +119,9 @@ class RedBlackTree<T> implements NavigableSet<T>
     {
         return switch(node)
         {
-            case Node(Black, t1, v1, t2):
+            case Node(_, t1, v1, t2=Node(Black, _, _, _)):
                 balR(Node(Black, t1, v1, del(t2, v)));
-            case Node(Red, t1, v1, t2):
+            case Node(_, t1, v1, t2):
                 Node(Red, t1, v1, del(t2, v));
             default:
                 throw {msg:"delR failed", node:node, tree:this};
@@ -150,7 +159,7 @@ class RedBlackTree<T> implements NavigableSet<T>
                 {
                     case Node(Red, s1, v3, s2):
                         Node(Red, Node(Red, t1, v1, s1), v3, Node(Red, s2, v2, t4));
-                    case Node(Black, _, _, _):
+                    case Node(Black, _, _, _) | Leaf:
                         Node(Red, t1, v1, Node(Red, s, v2, t4));
                     default:
                         throw {msg:"switch1 in fuse failed", node:s, tree:this};
@@ -161,7 +170,7 @@ class RedBlackTree<T> implements NavigableSet<T>
                 {
                     case Node(Red, s1, v3, s2):
                         Node(Red, Node(Black, t1, v1, s1), v3, Node(Black, s2, v2, t4));
-                    case Node(Black, s1, v3, s2):
+                    case Node(Black, _, _, _) | Leaf:
                         balL(Node(Black, t1, v1, Node(Black, s, v2, t4)));
                     default:
                         throw {msg:"switch2 in fuse failed", node:s, tree:this};
@@ -242,7 +251,7 @@ class RedBlackTree<T> implements NavigableSet<T>
     private function highestLessThan(element:T, equal:Bool):TreeNode<T>
     {
 
-        var last = root;
+        var last = Leaf;
         var current = root;
         var comparison = 0;
         var parents = new List<TreeNode<T>>();
@@ -272,6 +281,7 @@ class RedBlackTree<T> implements NavigableSet<T>
                     break;
             }
         }
+        parents.pop();
         return if(comparison < 0) predecessor(last, parents) else last;
     }
 
@@ -333,7 +343,7 @@ class RedBlackTree<T> implements NavigableSet<T>
 
     private function lowestGreaterThan(element:T, equal:Bool):TreeNode<T>
     {
-        var last  = root;
+        var last  = Leaf;
         var current = root;
         var comparison = 0;
         var parents = new List<TreeNode<T>>();
@@ -363,6 +373,7 @@ class RedBlackTree<T> implements NavigableSet<T>
                     break;
             }
         }
+        parents.pop();
         return if(comparison > 0) successor(last, parents) else last;
     }
 
