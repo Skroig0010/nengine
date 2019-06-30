@@ -5,7 +5,6 @@ using haxe.macro.ExprTools;
 
 class Settings
 {
-    public static inline var maxFloat = 1e37;
     public static inline var epsilon = 1e-5;
     public static inline var velocityThrehold = 1.0;
     public static inline var maxTranslation = 2.0;

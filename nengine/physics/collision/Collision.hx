@@ -76,12 +76,6 @@ class Collision
         return t1 * t2 <= 0;
     }
 
-    public static inline function collideSegments(segment1:Segment2, segment2:Segment2):Bool
-    {
-        return collideLineAndSegment(Segment2.toLine(segment1), segment2)
-            && collideLineAndSegment(Segment2.toLine(segment2), segment1);
-    }
-
     public static inline function getNextIndex(index:Int, length:Int):Int
     {
         return if(index + 1 < length) index + 1 else 0;

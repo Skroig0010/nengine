@@ -13,6 +13,6 @@ class Segment2
 
     public static inline function toLine(segment:Segment2):Line2
     {
-        return Line2.fromPoints(segment.vertex1, segment.vertex2);
+        return Line2.fromVectors(segment.vertex1, segment.vertex2);
     }
 }

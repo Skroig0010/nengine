@@ -121,4 +121,13 @@ abstract Vec2(Vec2Data) from Vec2Data to Vec2Data
     public static inline function crossVF(v:Vec2, f:Float)return new Vec2(f * v.y, -f * v.x);
 
     public static inline function crossFV(f:Float, v:Vec2)return new Vec2(-f * v.y, f * v.x);
+
+    public static inline function ccw(v1:Vec2, v2:Vec2, v3:Vec2):Float
+    {
+        var vx1 = v2.x - v1.x;
+        var vy1 = v2.y - v1.y;
+        var vx2 = v3.x - v2.x;
+        var vy2 = v3.y - v2.y;
+        return vx1 * vy2 - vy1 * vx2;
+    }
 }

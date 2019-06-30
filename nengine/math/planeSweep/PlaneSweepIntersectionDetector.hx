@@ -4,6 +4,8 @@ import nengine.physics.collision.Collision;
 
 using nengine.math.planeSweep.EventFunction;
 
+// This class does not work correctly for 3 line segments that intersect at one point.
+// FIXME:↓
 class PlaneSweepIntersectionDetector implements IntersectionDetector
 {
     private var sweepLine = new Line2(0, -1, 0);
