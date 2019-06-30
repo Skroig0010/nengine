@@ -12,7 +12,7 @@ class PolygonShape implements Shape
     public var friction:Float;
     public var restitution:Float;
     public var density:Float;
-    public var radius:Float = 0.05;
+    public var radius:Float = Settings.polygonRadius;
     // 比較用
     public var id(default, null):Int;
 

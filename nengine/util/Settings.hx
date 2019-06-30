@@ -11,6 +11,7 @@ class Settings
     public static inline var maxTranslationSquared = maxTranslation * maxTranslation;
     public static inline var baumgarte = 0.2;
     public static inline var linearSlop = 0.005;
+    public static inline var polygonRadius = linearSlop * 2.0;
     public static inline var maxLinearCorrection = 0.2;
     public static inline var maxRotation = 0.5 * 3.14159265359;
     public static inline var maxRotationSquared = maxRotation * maxRotation;
