@@ -8,9 +8,9 @@ using Lambda;
 class AISystem implements System
 {
     public var world:World;
-    public function new(world:World)
+    public function new(world:World) 
     {
-        world.addSystem(this);
+        this.world = world;
     }
 
     public function update(dt:Float)
@@ -21,7 +21,7 @@ class AISystem implements System
 
     private function aiUpdate(entity:Entity):Void
     {
-        var container = cast (entity.getComponent(AIContainer.componentName), AIContainer);
+        var container = entity.getComponent(AIContainer);
         var controller = container.controllers.find((controller)->controller.isActive());
         controller.update();
         container.entityOperator.update(controller);

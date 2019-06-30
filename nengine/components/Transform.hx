@@ -20,10 +20,7 @@ class Transform implements Component
     {
         return if(parent != null)
         {
-            new Transform2(
-                parent.global.position + parent.global.rotation * local.position,
-                local.rotation * parent.global.rotation
-                );
+            parent.global * local;
         }
         else
         {
@@ -35,10 +32,7 @@ class Transform implements Component
     {
         return local = if(parent != null)
         {
-            new Transform2(
-                Vec2.rotVecT(parent.global.rotation, transform.position - parent.global.position),
-                Rot2.mulT(transform.rotation, parent.global.rotation)
-                );
+            Transform2.mulT(parent.global, transform);
         }
         else
         {

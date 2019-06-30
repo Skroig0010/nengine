@@ -1,314 +1,82 @@
 package nengine.physics.collision;
-import ecs.Entity;
-import nengine.components.*;
-import nengine.components.shapes.*;
+import nengine.physics.collision.shapes.*;
 import nengine.math.*;
 
 class Collision
 {
     public static var maxManifoldPoints(default, never) = 2;
 
-    public static function collideCircles(
-            circleA:CircleShape, transformA:Transform2, 
-            circleB:CircleShape, transformB:Transform2):Manifold
+    public static inline function collideAABBs(aabbA:AABB2, aabbB:AABB2):Bool
     {
-        var pointA = transformA * circleA.position;
-        var pointB = transformB * circleB.position;
-        var distSq = Vec2.distanceSq(pointA, pointB);
-        var radius = circleA.radius + circleB.radius;
-
-        if(distSq > radius * radius)
-        {
-            return new Manifold(ManifoldType.None, [], null, null);
-        }
-
-        return new Manifold(ManifoldType.Circles, 
-                [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})],
-                new Vec2(), circleA.position.copy());
+        return aabbA.upperBound.x < aabbB.lowerBound.x
+            && aabbA.upperBound.y < aabbB.lowerBound.y
+            && aabbB.upperBound.x < aabbA.lowerBound.x
+            && aabbB.upperBound.y < aabbA.lowerBound.y;
     }
 
-    public static function collidePolygonAndCircle(
-            polyA:PolygonShape, transformA:Transform2,
-            circleB:CircleShape, transformB:Transform2):Manifold
+    public static function getSegmentsIntersectionPoint(segmentA:Segment2, segmentB:Segment2):Option<Vec2>
     {
-        // ポリゴンから見た円の中心位置
-        var cLocal = Transform2.mulXT(transformA, transformB * circleB.position);
+        var vA = segmentA.vertex2 - segmentA.vertex1;
+        var vB = segmentB.vertex2 - segmentB.vertex1;
+        var v1 = segmentB.vertex1 - segmentA.vertex1;
 
-        // 分離軸探索
-        var normalIndex = 0;
-        var separation = Math.NEGATIVE_INFINITY;
-        var radius = circleB.radius;
-        var vertices = polyA.vertices;
-        var normals = polyA.normals;
-
-        for(index in 0...polyA.vertices.length)
+        var crossAB = vA.cross(vB);
+        // 平行
+        if(crossAB == 0.0)
         {
-            var s = normals[index].dot(cLocal - vertices[index]);
-
-            if(s > radius)
-            {
-                return new Manifold(ManifoldType.None, [], null, null);
-            }
-            
-            if(s > separation)
-            {
-                separation = s;
-                normalIndex = index;
-            }
+            return None;
         }
 
-        var vertIndex1 = normalIndex;
-        var vertIndex2 = getNextIndex(vertIndex1, vertices.length);
-        var vertex1 = vertices[vertIndex1];
-        var vertex2 = vertices[vertIndex2];
+        var cross1A = v1.cross(vA);
+        var cross1B = v1.cross(vB);
 
-        if(separation < 0)
-        {
-            return new Manifold(ManifoldType.FaceA, 
-                    [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})], 
-                    normals[normalIndex], 0.5 * (vertex1 + vertex2));
-        }
+        var t1 = cross1B/crossAB;
+        var t2 = cross1A/crossAB;
 
-        var u1 = (cLocal - vertex1).dot(vertex2 - vertex1);
-        var u2 = (cLocal - vertex2).dot(vertex1 - vertex2);
-        if(u1 <= 0.0)
+        if(t1 + Settings.epsilon < 0 || t1 - Settings.epsilon > 1 || t2 + Settings.epsilon < 0 || t2 - Settings.epsilon > 1)
         {
-            if(Vec2.distanceSq(cLocal, vertex1) <= radius * radius)
-            {
-            return new Manifold(ManifoldType.FaceA, 
-                    [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})], 
-                    (cLocal - vertex1).normalize(), vertex1);
-            }
+            // 交差してない
+            return None;
         }
-        else if(u2 <= 0.0)
+        
+        return Some(segmentA.vertex1 + vA * t1);
+    }
+
+    public static function getLinesIntersectionPoint(line1:Line2, line2:Line2):Option<Vec2>
+    {
+        var d = line1.a * line2.b - line2.a * line1.b;
+        return if(d == 0.0)
         {
-            if(Vec2.distanceSq(cLocal, vertex2) <= radius * radius)
-            {
-            return new Manifold(ManifoldType.FaceA, 
-                    [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})], 
-                    (cLocal - vertex2).normalize(), vertex2);
-            }
+            None;
         }
         else
         {
-            var faceCenter = 0.5 * (vertex1 + vertex2);
-            var s = (cLocal - faceCenter).dot(normals[vertIndex1]);
-            if(s <= radius)
-            {
-            return new Manifold(ManifoldType.FaceA, 
-                    [new ManifoldPoint(circleB.position.copy(), 0, 0, {a:ContactType.Vertex(0), b:ContactType.Vertex(0)})], 
-                    normals[vertIndex1], faceCenter);
-            }
+            var x = (line1.b * line2.c - line1.c * line2.b) / d;
+            var y = (line1.a * line2.c - line1.c * line2.a) / d;
+            return Some(new Vec2(x, y));
         }
-        return new Manifold(ManifoldType.None, [], null, null);
     }
 
-    public static function collidePolygons(
-            polyA:PolygonShape, transformA:Transform2,
-            polyB:PolygonShape, transformB:Transform2):Manifold
+    public static inline function getLineAndSegmentIntersectionPoint(line1:Line2, segment2:Segment2):Option<Vec2>
     {
-        var temp1 = findMaxSeparation(polyA, transformA, polyB, transformB);
-        var edgeA = temp1.bestIndex;
-        var separationA = temp1.maxSeparation;
-        if(separationA > 0) return new Manifold(ManifoldType.None, [], null, null);
-
-        temp1 = findMaxSeparation(polyB, transformB, polyA, transformA);
-        var edgeB = temp1.bestIndex;
-        var separationB = temp1.maxSeparation;
-        if(separationB > 0) return new Manifold(ManifoldType.None, [], null, null);
-
-        var poly1, poly2:PolygonShape;
-        var transform1, transform2:Transform2;
-        var edge1:Int;
-        var flip:Bool;
-        var type:ManifoldType;
-
-        if(separationB > separationA)
+        return if(!collideLineAndSegment(line1, segment2))
         {
-            poly1 = polyB;
-            poly2 = polyA;
-            transform1 = transformB;
-            transform2 = transformA;
-            edge1 = edgeB;
-            type = ManifoldType.FaceB;
-            flip = true;
+            None;
         }
         else
         {
-            poly1 = polyA;
-            poly2 = polyB;
-            transform1 = transformA;
-            transform2 = transformB;
-            edge1 = edgeA;
-            type = ManifoldType.FaceA;
-            flip = false;
+            getLinesIntersectionPoint(line1, Segment2.toLine(segment2));
         }
-
-        var incidentEdges = findIncidentEdge(poly1, transform1, edge1, poly2, transform2);
-
-        var iv1 = edge1;
-        var iv2 = getNextIndex(edge1, poly1.vertices.length);
-
-        var v11 = poly1.vertices[iv1];
-        var v12 = poly1.vertices[iv2];
-        
-        var localTangent = v12 - v11;
-        localTangent = localTangent.normalize();
-
-        var localNormal = Vec2.crossVF(localTangent, 1.0);
-        var planePoint = 0.5 * (v11 + v12);
-
-        var tangent = transform1.rotation * localTangent;
-        var normal = Vec2.crossVF(tangent, 1.0);
-
-        v11 = transform1 * v11;
-        v12 = transform1 * v12;
-
-        // face offset
-        var frontOffset = normal.dot(v11);
-        
-        //side offset
-        var sideOffset1 = -(tangent.dot(v11));
-        var sideOffset2 = tangent.dot(v12);
-
-        var clipPoints = clipSegmentToLine(incidentEdges, -tangent, sideOffset1, iv1);
-        if(clipPoints.length < 2) return new Manifold(type, [], new Vec2(), new Vec2());
-
-        clipPoints = clipSegmentToLine(clipPoints, tangent, sideOffset2, iv2);
-        if(clipPoints.length < 2) return new Manifold(type, [], new Vec2(), new Vec2());
-
-        var points = new Array<ManifoldPoint>();
-        for(index in 0...maxManifoldPoints)
-        {
-            var separation = normal.dot(clipPoints[index].vertex) - frontOffset;
-            var mp = new ManifoldPoint( transform2 * clipPoints[index].vertex,
-                        0, 0, clipPoints[index].contactFeature);
-            if(flip)
-            {
-                var temp = mp.contactFeature.a;
-                mp.contactFeature.a = mp.contactFeature.b;
-                mp.contactFeature.b = temp;
-            }
-            points.push(mp);
-        }
-        return new Manifold(type, points, localNormal, planePoint);
     }
 
-    private static function clipSegmentToLine(vIn:Array<ClipVertex>, normal:Vec2, offset:Float, vertexIndexA:Int):Array<ClipVertex>
+    public static inline function collideLineAndSegment(line1:Line2, segment2:Segment2):Bool
     {
-        var distance0 = normal.dot(vIn[0].vertex) - offset;
-        var distance1 = normal.dot(vIn[1].vertex) - offset;
-
-        var vOut = new Array<ClipVertex>();
-
-        if(distance0 <= 0.0) vOut.push(vIn[0]);
-        if(distance1 <= 0.0) vOut.push(vIn[1]);
-
-        if(distance0 * distance1 < 0.0)
-        {
-            var interp = distance0 / (distance0 - distance1);
-            vOut.push({
-                vertex:vIn[0].vertex + interp * (vIn[1].vertex - vIn[0].vertex),
-                       contactFeature:{
-                           a:Vertex(vertexIndexA),
-                           b:Face(switch(vIn[0].contactFeature.b)
-                                   {
-                                       case Vertex(index):index;
-                                       case Face(index):index;
-                                   })
-                       }
-            });
-        }
-        return vOut;
+        var t1 = line1.a * segment2.vertex1.x + line1.b * segment2.vertex1.y + line1.c;
+        var t2 = line1.a * segment2.vertex2.x + line1.b * segment2.vertex2.y + line1.c;
+        return t1 * t2 <= 0;
     }
 
-    private static function findMaxSeparation(
-            polyA:PolygonShape, transformA:Transform2,
-            polyB:PolygonShape, transformB:Transform2):{bestIndex:Int, maxSeparation:Float}
-    {
-        var normalsA = polyA.normals;
-        var verticesA = polyA.vertices;
-        var verticesB = polyB.vertices;
-        var transform = Transform2.mulT(transformB, transformA);
-
-        var bestIndex:Int = 0;
-        var maxSeparation:Float = Math.NEGATIVE_INFINITY;
-        for(index in 0...verticesA.length)
-        {
-            var n = transform.rotation * normalsA[index];
-            var v1 = transform * verticesA[index];
-
-            var si:Float = Math.POSITIVE_INFINITY;
-            for(vB in verticesB)
-            {
-                var sij = n.dot(vB - v1);
-                if(sij < si)
-                {
-                    si = sij;
-                }
-            }
-
-            if (si > maxSeparation)
-            {
-                maxSeparation = si;
-                bestIndex = index;
-            }
-        }
-
-        return {
-            bestIndex:bestIndex,
-            maxSeparation:maxSeparation
-        };
-    }
-
-    private static function findIncidentEdge(polyA:PolygonShape, transformA:Transform2, edgeA:Int,
-            polyB:PolygonShape, transformB:Transform2):Array<ClipVertex>
-    {
-        var normalsA = polyA.normals;
-        var verticesB = polyB.vertices;
-        var normalsB = polyB.normals;
-
-        // polyBから見たPolyAのedgeAのnormal
-        var normalA = Vec2.rotVecT(transformB.rotation, transformA.rotation * normalsA[edgeA]);
-
-        // edgeAと比べて一番反対方向向いてる線分を探索?
-        var minDotIndex = 0;
-        var minDot = Math.POSITIVE_INFINITY;
-        for(index in 0...polyB.normals.length)
-        {
-            var dot = normalA.dot(normalsB[index]);
-            if(dot < minDot)
-            {
-                minDot = dot;
-                minDotIndex = index;
-            }
-        }
-
-        var index1 = minDotIndex;
-        var index2 = getNextIndex(index1, verticesB.length);
-
-        var c1 = {
-            vertex:transformB * verticesB[index1],
-            contactFeature:
-            {
-                a:ContactType.Face(edgeA),
-                b:ContactType.Vertex(index1),
-            }
-        }
-
-        var c2 = {
-            vertex:transformB * verticesB[index2],
-            contactFeature:
-            {
-                a:ContactType.Face(edgeA),
-                b:ContactType.Vertex(index2),
-            }
-        }
-
-        return [c1, c2];
-    }
-
-    private inline static function getNextIndex(index:Int, length:Int):Int
+    public static inline function getNextIndex(index:Int, length:Int):Int
     {
         return if(index + 1 < length) index + 1 else 0;
     }
