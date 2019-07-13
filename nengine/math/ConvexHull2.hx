@@ -1,4 +1,4 @@
-package nengine.math.planeSweep;
+package nengine.math;
 
 class ConvexHull2
 {

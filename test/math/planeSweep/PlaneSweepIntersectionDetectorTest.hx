@@ -13,9 +13,10 @@ class PlaneSweepIntersectionDetectorTest extends Test
         var segments = new Array<Segment2>();
         segments.push(new Segment2(new Vec2(1, 0), new Vec2(1, 2)));
         segments.push(new Segment2(new Vec2(0, 1), new Vec2(2, 1)));
-        // segments.push(new Segment2(new Vec2(5, 1), new Vec2(5, 2)));
-        // segments.push(new Segment2(new Vec2(5, -1), new Vec2(5, 2)));
-        segments.push(new Segment2(new Vec2(0, 0), new Vec2(5, 5)));
+        segments.push(new Segment2(new Vec2(5, 1), new Vec2(5, 2)));
+        segments.push(new Segment2(new Vec2(5, -1), new Vec2(5, 2)));
+        // ↓これを入れると正常に判定できなくなる(これ使う予定ないのでここで終わり)
+        // segments.push(new Segment2(new Vec2(0, 0), new Vec2(5, 5)));
 
         var sweep = new PlaneSweepIntersectionDetector();
         var brute = new BruteForceIntersectionDetector();

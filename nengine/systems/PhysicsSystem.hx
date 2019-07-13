@@ -100,6 +100,19 @@ class PhysicsSystem implements System
         else
         {
             // contactManager.broadPhase.removeBody(body);
+            // Delete the attached contacts.
+            var ce = body.contactEdges;
+            while(ce != null)
+            {
+                var ce0 = ce;
+                ce = ce.next;
+                contactManager.destroy(ce0.contact);
+            }
+            body.contactEdges = null;
+
+            // Delete the attached shapes.
+            body.removeAllShapes();
+
             bodies.remove(body);
         }
     }

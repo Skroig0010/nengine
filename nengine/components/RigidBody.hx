@@ -116,9 +116,44 @@ class RigidBody implements Component
     public function removeShape(shape:Shape):Void
     {
         shapes.remove(shape);
-        if(shape.body == this)shape.body = null;
+
+        removeShapeFromContactEdges(shape);
+
+        shape.body = null;
         system.removeShape(shape);
         resetMassData();
+    }
+
+    public function removeAllShapes():Void
+    {
+        for(shape in shapes)
+        {
+            removeShapeFromContactEdges(shape);
+            shape.body = null;
+            system.removeShape(shape);
+        }
+
+        shapes = [];
+        resetMassData();
+    }
+
+    private function removeShapeFromContactEdges(shape:Shape):Void
+    {
+        // Destroy any contacts assosiated with the shape
+        var edge = contactEdges;
+        while(edge != null)
+        {
+            var c = edge.contact;
+            edge = edge.next;
+
+            var shapeA = c.shapeA;
+            var shapeB = c.shapeB;
+
+            if(shapeA == shape || shapeB == shape)
+            {
+                system.destroyContact(c);
+            }
+        }
     }
 
     public inline function iterator():Iterator<Shape>

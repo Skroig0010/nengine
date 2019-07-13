@@ -19,7 +19,7 @@ class PolygonShape implements Shape
     public var vertices = new Array<Vec2>();
     public var normals = new Array<Vec2>();
 
-    public function new(vertices:Array<Vec2>, normals:Array<Vec2>, density:Float, friction:Float, restitution:Float, isSensor:Bool)
+    function new(vertices:Array<Vec2>, normals:Array<Vec2>, density:Float, friction:Float, restitution:Float, isSensor:Bool)
     {
         this.vertices = vertices;
         this.normals = normals;
@@ -64,6 +64,12 @@ class PolygonShape implements Shape
     {
         var separated = getSeparatedPoints(vertices);
         var vertices = getConvexHull(separated);
+        var normals = computeNormal(vertices);
+        return new PolygonShape(vertices, normals, density, friction, restitution, isSensor);
+    }
+
+    public static function makePolygonAlreadyCCWConvexHull(vertices:Array<Vec2>, density:Float = 0.0, friction:Float = 0.2, restitution:Float = 0.0, isSensor:Bool = false):PolygonShape
+    {
         var normals = computeNormal(vertices);
         return new PolygonShape(vertices, normals, density, friction, restitution, isSensor);
     }
@@ -236,7 +242,7 @@ class PolygonShape implements Shape
             var index1 = index;
             var index2 = if(index + 1 < vertices.length) index + 1 else 0;
             var edge = vertices[index2] - vertices[index1];
-            if(edge.lengthSq() < 0.000000001/*数は適当.FLT_EPSILON的なものがあったらそれを使う*/)
+            if(edge.lengthSq() < Settings.epsilon)
             {
                 throw "Edge length is too short";
             }

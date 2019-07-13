@@ -23,4 +23,12 @@ class AABB2
             && other.lowerBound.x <= lowerBound.x
             && other.lowerBound.y <= lowerBound.y;
     }
+
+    public function containsV(v:Vec2):Bool
+    {
+        return upperBound.x <= v.x 
+            && upperBound.y <= v.y
+            && v.x <= lowerBound.x
+            && v.y <= lowerBound.y;
+    }
 }

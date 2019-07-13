@@ -9,7 +9,7 @@ class Transform implements Component
     public var name(default, never) = componentName;
     public var local:Transform2;
     @:isVar public var global(get, set):Transform2;
-    public var parent:Transform = null;
+    public var parent:Option<Transform> = None;
 
     public function new(?position:Vec2, ?rotation:Rot2)
     {
@@ -18,24 +18,22 @@ class Transform implements Component
 
     private function get_global():Transform2
     {
-        return if(parent != null)
+        return switch(parent)
         {
-            parent.global * local;
-        }
-        else
-        {
+            case Some(p):
+            p.global * local;
+            case None:
             local;
         }
     }
 
     private function set_global(transform:Transform2):Transform2
     {
-        return local = if(parent != null)
+        return local = switch(parent)
         {
-            Transform2.mulT(parent.global, transform);
-        }
-        else
-        {
+            case Some(p):
+            Transform2.mulT(p.global, transform);
+            case None:
             transform;
         }
     }

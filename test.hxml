@@ -8,3 +8,4 @@ test.math.RedBlackTreeTest
 test.util.QuadTreeTest
 -js testbuild/test.js
 -cmd node testbuild/test.js
+-debug

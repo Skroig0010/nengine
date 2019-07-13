@@ -16,7 +16,6 @@ nengine.ds.Set
 nengine.ds.SortedSet
 
 nengine.math.planeSweep.Comparator
-nengine.math.planeSweep.ConvexHull2
 nengine.math.planeSweep.Event
 nengine.math.planeSweep.EventFunction
 nengine.math.planeSweep.EventQueue
@@ -26,10 +25,13 @@ nengine.math.planeSweep.PlaneSweepIntersectionDetector
 nengine.math.planeSweep.PolygonIntersection
 
 nengine.math.AABB2
+nengine.math.ConvexHull2
+nengine.math.ConvexHullIntersection
 nengine.math.Line2
 nengine.math.Mat22
 nengine.math.Mat22Data
 nengine.math.Math2
+nengine.math.Ray2
 nengine.math.Rot2
 nengine.math.Rot2Data
 nengine.math.Segment2

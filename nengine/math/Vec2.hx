@@ -36,6 +36,8 @@ abstract Vec2(Vec2Data) from Vec2Data to Vec2Data
         this.y = v.y;
     }
 
+    public static inline function getUnitFromAngle(angle:Float) return new Vec2(Math.cos(angle), Math.sin(angle));
+
     public inline function copy():Vec2
     {
         return new Vec2(this.x, this.y);
@@ -86,6 +88,12 @@ abstract Vec2(Vec2Data) from Vec2Data to Vec2Data
     public static inline function rotVec(q:Rot2, v:Vec2):Vec2
     {
         return new Vec2(q.c * v.x - q.s * v.y, q.s * v.x + q.c * v.y);
+    }
+
+    @:op(A/B)
+    public static inline function divScalar(v:Vec2, f:Float):Vec2
+    {
+        return new Vec2(v.x / f, v.y / f);
     }
 
     public static inline function rotVecT(q:Rot2, v:Vec2):Vec2

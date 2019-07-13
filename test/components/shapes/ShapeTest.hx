@@ -7,6 +7,7 @@ import nengine.components.*;
 import nengine.physics.collision.shapes.*;
 
 @:access(nengine.physics.collision.shapes.CircleShape)
+@:access(nengine.physics.collision.shapes.PolygonShape)
 class ShapeTest extends Test
 {
     public function testCircleAABB()

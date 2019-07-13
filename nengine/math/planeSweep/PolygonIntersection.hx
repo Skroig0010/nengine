@@ -3,33 +3,44 @@ import nengine.physics.collision.Collision;
 
 class PolygonIntersection
 {
-    public function execute(convA:ConvexHull2, convB:ConvexHull2):Option<ConvexHull2>
+    public static function execute(convA:ConvexHull2, convB:ConvexHull2):Option<ConvexHull2>
     {
         // 凸多角形の左右辺リスト
+        // それっぽく縮める
+        // 広げると左辺右辺で衝突しなくなってしまう
+        // なんとかならないのか
         var status = {
             left1:0,
-            lefts1:createSegmentsArray(convA, Side.Left),
+            lefts1:createSegmentsArray(convA, Side.Left, new Vec2(0.0000001, -0.0000001)),
             right1:0,
-            rights1:createSegmentsArray(convA, Side.Right),
+            rights1:createSegmentsArray(convA, Side.Right, new Vec2(-0.0000001, -0.0000001)),
             left2:0,
-            lefts2:createSegmentsArray(convB, Side.Left),
+            lefts2:createSegmentsArray(convB, Side.Left, new Vec2(0.0000001, 0.0000001)),
             right2:0,
-            rights2:createSegmentsArray(convB, Side.Right),
+            rights2:createSegmentsArray(convB, Side.Right, new Vec2(-0.0000001, 0.0000001)),
         }
         var leftResult = new Array<Segment2>();
         var rightResult = new Array<Segment2>();
+        // trace('\nleft1: ${status.lefts1}');
+        // trace('\nleft2: ${status.lefts2}');
+        // trace('\nright1: ${status.rights1}');
+        // trace('\nright2: ${status.rights2}');
+
 
         // 最初のイベント取得
         var result = firstPass(status, leftResult, rightResult);
-        while(result.mustContinue)
+        while(Type.enumEq(result, Yes))
         {
             // 2番目以降のイベントの処理
             result = secondPass(status, leftResult, rightResult);
         }
 
+        // trace("fin process");
+
         // 左側と右側の計算結果を統合
-        rightResult.reverse();
+        leftResult.reverse();
         var totalResult = leftResult.concat(rightResult);
+        // trace('totalResult${totalResult}');
 
         var resultPoints = new Array<Vec2>();
         var lastPoint:Vec2 = null;
@@ -38,11 +49,12 @@ class PolygonIntersection
         {
             var e1 = totalResult[index];
             var e2 = totalResult[(index + 1) % size];
+            // 平行な辺で死ぬところがある
             var point = Collision.getSegmentsIntersectionPoint(e1, e2);
             switch(point)
             {
                 case Some(p):
-                    if(lastPoint != p)
+                    if(lastPoint == null || (lastPoint - p).lengthSq() > Settings.epsilon)
                     {
                         resultPoints.push(p);
                         lastPoint = p;
@@ -51,17 +63,27 @@ class PolygonIntersection
             }
         }
 
+        // 最初と最後がダブるのは防ぎきれないのでここで消す
+        if(resultPoints.length != 0 && (resultPoints[0] - lastPoint).lengthSq() <= Settings.epsilon)
+        {
+            resultPoints.pop();
+        }
+
+        // trace('resultPoints: ${resultPoints}');
         return if(resultPoints.length >= 3) Some(new ConvexHull2(resultPoints)) else None;
     }
 
     // 初回のイベント処理
-    private function firstPass(status:Status, leftResult:Array<Segment2>, rightResult:Array<Segment2>):StepResult
+    // 続けるべきかを返す
+    private static function firstPass(status:Status, leftResult:Array<Segment2>, rightResult:Array<Segment2>):MustContinue
     {
         var top1 = status.lefts1[0].vertex1;
         var top2 = status.lefts2[0].vertex1;
 
         // 2つの凸多角形の低い方の最上点を走査線の初期位置とする
         var sweepY = Math.max(top1.y, top2.y);
+        // trace('sweepY: ${sweepY}');
+
         // 走査線作成
         var sweepLine = Line2.fromPoints(0, sweepY, 1, sweepY);
 
@@ -71,15 +93,21 @@ class PolygonIntersection
         var left2 = findInitialEdgeIndex(status.lefts2, sweepLine);
         var right2 = findInitialEdgeIndex(status.rights2, sweepLine);
 
-        if(left1.isNone() || right1.isNone() || left2.isNone() || right2.isNone())
+        // trace('l1: ${left1}, l2: ${left2}, r1: ${right1}, r2: ${right2}');
+
+
+        switch([left1, left2, right1, right2])
         {
-            return {nextSweepY:sweepY, mustContinue:false};
+            case [Some(left1), Some(left2), Some(right1), Some(right2)]:
+                status.left1 = left1;
+                status.right1 = right1;
+                status.left2 = left2;
+                status.right2 = right2;
+            default:
+                return No;
         }
 
-        status.left1 = left1.getOrElse(0);
-        status.right1 = right1.getOrElse(0);
-        status.left2 = left2.getOrElse(0);
-        status.right2 = right2.getOrElse(0);
+        // trace('top1: ${top1}, top2: ${top2}');
 
         // 初回のイベント処理
         if(top1.y > top2.y)
@@ -108,17 +136,17 @@ class PolygonIntersection
                 process(status, EdgePosition.Right2, sweepLine, leftResult, rightResult);
             }
         }
-        return {nextSweepY:sweepY, mustContinue:true};
+        return Yes;
     }
 
     // 2回目以降のイベント処理
-    private function secondPass(status:Status, leftResult:Array<Segment2>, rightResult:Array<Segment2>):StepResult
+    private static function secondPass(status:Status, leftResult:Array<Segment2>, rightResult:Array<Segment2>):MustContinue
     {
         // 次に処理すべき辺の選択
         var edgePosition = switch(pickNextEdgePosition(status))
         {
             case None:
-                return {nextSweepY:Math.NaN, mustContinue:false};
+                return No;
             case Some(edgePosition):
                 edgePosition;
         }
@@ -141,14 +169,23 @@ class PolygonIntersection
         }
 
         var nextSweepY = next.vertex1.y;
+
+        // どちらかの最下点を下回ったら終了
+        var bot1 = status.lefts1[status.lefts1.length - 1].vertex2;
+        var bot2 = status.lefts2[status.lefts2.length - 1].vertex2;
+        var bottom = Math.min(bot1.y, bot2.y);
+
+        if(bottom < nextSweepY) return No;
+
+        // trace('nextSweepY: ${nextSweepY}');
         var sweepLine = Line2.fromPoints(0, nextSweepY, 1, nextSweepY);
         
         // イベント処理
         process(status, edgePosition, sweepLine, leftResult, rightResult);
-        return {nextSweepY:nextSweepY, mustContinue:true};
+        return Yes;
     }
 
-    private function process(status:Status, pos:EdgePosition, sweepLine:Line2, leftResult:Array<Segment2>, rightResult:Array<Segment2>):Void
+    private static function process(status:Status, pos:EdgePosition, sweepLine:Line2, leftResult:Array<Segment2>, rightResult:Array<Segment2>):Void
     {
         // これだったら最初からsegmentのリストにしとけばよかったのでは
         var left1 = status.lefts1[status.left1];
@@ -169,65 +206,81 @@ class PolygonIntersection
         }
     }
 
-    private function processLeft(left1:Segment2, left2:Segment2, right2:Segment2,
+    private static function processLeft(left1:Segment2, left2:Segment2, right2:Segment2,
             sweepLine:Line2, leftResult:Array<Segment2>, rightResult:Array<Segment2>):Void
     {
         var l1 = Collision.getLineAndSegmentIntersectionPoint(sweepLine, left1).getOrElse(left1.vertex1).x;
         var l2 = Collision.getLineAndSegmentIntersectionPoint(sweepLine, left2).getOrElse(left2.vertex1).x;
         var r2 = Collision.getLineAndSegmentIntersectionPoint(sweepLine, right2).getOrElse(right2.vertex1).x;
 
+
         // left1がleft2とright2の内部から始まる場合
         if(l2 < l1 && l1 < r2)
         {
             leftResult.push(left1);
         }
+        // trace('porcessLeft');
+        // trace('\nleftResult1: ${leftResult}');
+        // trace('\nrightResult: ${rightResult}');
 
         // left1がright2と交わり、right2よりも右から始まる場合
-        if(Collision.getSegmentsIntersectionPoint(left1, right2).isSome() && l1 >= r2)
+        if(Collision.collideSegments(left1, right2) && l1 >= r2)
         {
             /* left1, right2はともに交差凸多角形の一部であり
                必ず上端となるため結果の先頭位置に追加 */
             leftResult.insert(0, left1);
             rightResult.insert(0, right2);
         }
+        // trace('\nleftResult2: ${leftResult}');
+        // trace('\nrightResult: ${rightResult}');
 
         // left1がleft2と交わる場合
-        if(Collision.getSegmentsIntersectionPoint(left1, left2).isSome())
+        if(Collision.collideSegments(left1, left2))
         {
             leftResult.push(if(l1 > l2) left2 else left1);
         }
+        // trace('\nleftResult3: ${leftResult}');
+        // trace('\nrightResult: ${rightResult}');
     }
 
-    private function processRight(right1:Segment2, left2:Segment2, right2:Segment2,
+    private static function processRight(right1:Segment2, left2:Segment2, right2:Segment2,
             sweepLine:Line2, leftResult:Array<Segment2>, rightResult:Array<Segment2>):Void
     {
         var r1 = Collision.getLineAndSegmentIntersectionPoint(sweepLine, right1).getOrElse(right1.vertex1).x;
         var l2 = Collision.getLineAndSegmentIntersectionPoint(sweepLine, left2).getOrElse(left2.vertex1).x;
         var r2 = Collision.getLineAndSegmentIntersectionPoint(sweepLine, right2).getOrElse(right2.vertex1).x;
 
+
         // right1がleft2とright2の内部から始まる場合
         if(l2 < r1  && r1 < r2)
         {
             rightResult.push(right1);
         }
+        // trace('porcessRight');
+        // trace('\nleftResult1: ${leftResult}');
+        // trace('\nrightResult: ${rightResult}');
 
         // right1がleft2と交わり、かつleft2より左から始まる場合
-        if(Collision.getSegmentsIntersectionPoint(right1, left2).isSome() && r1 <= r2)
+        if(Collision.collideSegments(right1, left2) && r1 <= l2)
         {
             /* right1, left2は共に交差凸多角形の一部であり
                必ず上端となるため結果の先頭位置に追加 */
             rightResult.insert(0, right1);
             leftResult.insert(0, left2);
         }
+        // trace('\nleftResult2: ${leftResult}');
+        // trace('\nrightResult: ${rightResult}');
 
         // right1がright2と交わる場合
-        if(Collision.getSegmentsIntersectionPoint(right1, right2).isSome())
+        if(Collision.collideSegments(right1, right2))
         {
             rightResult.push(if(r1 < r2) right2 else right1);
         }
+        // trace('\nleftResult3: ${leftResult}');
+        // trace('\nrightResult: ${rightResult}');
     }
 
-    private function createSegmentsArray(conv:ConvexHull2, side:Side):Array<Segment2>
+    private static function createSegmentsArray(conv:ConvexHull2, side:Side, det:Vec2):Array<Segment2>
     {
         var minY = Math.POSITIVE_INFINITY;
         var maxY = Math.NEGATIVE_INFINITY;
@@ -239,7 +292,7 @@ class PolygonIntersection
         for(index in 0...size)
         {
             var v = conv.vertices[index];
-            var y = v.y;
+            var y = v.y + det.y;
             if(y < minY)
             {
                 minY = y;
@@ -253,15 +306,17 @@ class PolygonIntersection
         }
         
         var segments = new Array<Segment2>();
-        Settings.assert(Vec2.ccw(conv.vertices[0], conv.vertices[1], conv.vertices[2]) < 0);
-        var forward = Type.enumEq(side, Side.Left);
+        // 反時計回りでなければいけない
+        var ccw = Vec2.ccw(conv.vertices[0], conv.vertices[1], conv.vertices[2]);
+        Settings.assert(ccw > 0);
+        var forward = !Type.enumEq(side, Side.Left);
         var index = minYIndex;
         var nextIndex = 0;
         // 最上点の位置から開始し、最下点に到達するまで続ける
         while(index != maxYIndex)
         {
             nextIndex = (if(forward) index + 1 else index - 1 + size) % size;
-            segments.push(new Segment2(conv.vertices[index], conv.vertices[nextIndex]));
+            segments.push(new Segment2(conv.vertices[index] + det, conv.vertices[nextIndex] + det));
             // indexの更新
             index = nextIndex;
         }
@@ -269,7 +324,7 @@ class PolygonIntersection
     }
 
     // ステータスの中から終点のy座標が最も上にある辺を探す
-    private function pickNextEdgePosition(status:Status):Option<EdgePosition>
+    private static function pickNextEdgePosition(status:Status):Option<EdgePosition>
     {
         var edgePosition = chooseEdgeWithUpperEndY(status, Some(EdgePosition.Left1), Some(EdgePosition.Right1));
         edgePosition = chooseEdgeWithUpperEndY(status, edgePosition, Some(EdgePosition.Left2));
@@ -277,7 +332,7 @@ class PolygonIntersection
         return edgePosition;
     }
 
-    private function chooseEdgeWithUpperEndY(status, pos1:Option<EdgePosition>, pos2:Option<EdgePosition>):Option<EdgePosition>
+    private static function chooseEdgeWithUpperEndY(status, pos1:Option<EdgePosition>, pos2:Option<EdgePosition>):Option<EdgePosition>
     {
         var hasNext1 = false;
         var hasNext2 = false;
@@ -337,7 +392,7 @@ class PolygonIntersection
         }
     }
 
-    private inline function getEdgeFromEdgePosition(status:Status, pos:EdgePosition):{index:Int, segments:Array<Segment2>}
+    private inline static function getEdgeFromEdgePosition(status:Status, pos:EdgePosition):{index:Int, segments:Array<Segment2>}
     {
         return switch(pos)
         {
@@ -364,17 +419,19 @@ class PolygonIntersection
         }
     }
 
-    private function findInitialEdgeIndex(segments:Array<Segment2>, sweepLine:Line2):Option<Int>
+    private static function findInitialEdgeIndex(segments:Array<Segment2>, sweepLine:Line2):Option<Int>
     {
         for(index in 0...segments.length)
         {
-            if(Collision.getLineAndSegmentIntersectionPoint(sweepLine, segments[index]).isSome())
+            if(Collision.collideLineAndSegment(sweepLine, segments[index]))
             {
                 return Some(index);
             }
         }
         return None;
     }
+
+    // 線分同士の交差において、重なっている場合にも頂点を返したい
 }
 
 private enum Side
@@ -402,7 +459,8 @@ private typedef Status = {
     var rights2:Array<Segment2>;
 }
 
-private typedef StepResult = {
-    var nextSweepY:Float;
-    var mustContinue:Bool;
+private enum MustContinue
+{
+    Yes;
+    No;
 }
