@@ -65,7 +65,7 @@ class Contact
         return if(restitutionA > restitutionB) restitutionA else restitutionB;
     }
 
-    public function update(listener:ContactListener):Void
+    public function update(contactListener:Option<ContactListener>):Void
     {
         var oldManifold = manifold;
         var touching = false;
@@ -99,19 +99,24 @@ class Contact
 
         touchingFlag = touching;
 
-        if(!wasTouching && touching && listener != null)
+        switch(contactListener)
         {
-            listener.beginContact(this);
-        }
+            case Some(listener):
+                if(!wasTouching && touching)
+                {
+                    listener.beginContact(this);
+                }
 
-        if(wasTouching && !touching && listener != null)
-        {
-            listener.endContact(this);
-        }
+                if(wasTouching && !touching)
+                {
+                    listener.endContact(this);
+                }
 
-        if(!sensor && touching && listener != null)
-        {
-            listener.preSolve(this, oldManifold);
+                if(!sensor && touching)
+                {
+                    listener.preSolve(this, oldManifold);
+                }
+            case None:
         }
     }
 

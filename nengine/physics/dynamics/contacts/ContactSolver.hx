@@ -22,14 +22,23 @@ class ContactSolver
         var index = 0;
         while(contact != null)
         {
+            // もう触れ合ってないものを除く
             if(!contact.touchingFlag) 
             {
                 contact = contact.next;
                 continue;
             }
-            contacts.push(contact);
+
+            // センサーを除く
             var shapeA = contact.shapeA;
             var shapeB = contact.shapeB;
+            if(shapeA.isSensor || shapeB.isSensor)
+            {
+                contact = contact.next;
+                continue;
+            }
+            
+            contacts.push(contact);
             var radiusA = shapeA.radius;
             var radiusB = shapeB.radius;
             var bodyA = shapeA.body;

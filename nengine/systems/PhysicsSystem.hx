@@ -9,6 +9,7 @@ import nengine.physics.collision.shapes.Shape;
 import nengine.physics.collision.BroadPhase;
 import nengine.physics.collision.QuadTree;
 import nengine.physics.dynamics.contacts.Contact;
+import nengine.physics.dynamics.contacts.ContactListener;
 import nengine.physics.dynamics.contacts.ContactSolver;
 import nengine.physics.dynamics.ContactManager;
 import nengine.physics.dynamics.TimeStep;
@@ -345,5 +346,10 @@ class PhysicsSystem implements System
         }
 
         contactManager.findNewContacts();
+    }
+
+    public function setContactListener(contactListener:ContactListener):Void
+    {
+        contactManager.contactListener = Some(contactListener);
     }
 }

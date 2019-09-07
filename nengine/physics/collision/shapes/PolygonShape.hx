@@ -57,7 +57,7 @@ class PolygonShape implements Shape
         var normals = [new Vec2(0.0, -1.0),
                 new Vec2(1.0, 0.0),
                 new Vec2(0.0, 1.0),
-                new Vec2(-1.0, 0.0)].map((vertex) -> return transform * vertex);
+                new Vec2(-1.0, 0.0)].map((vertex) -> return transform.rotation * vertex);
         var polygon = new PolygonShape(vertices, normals, density, friction, restitution, isSensor, name);
         return polygon;
     }

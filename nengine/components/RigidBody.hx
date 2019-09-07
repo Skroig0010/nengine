@@ -80,7 +80,15 @@ class RigidBody implements Component
     public var index:Int = 0;
 
     // flags
-    public var fixedRotationFlag:Bool = false;
+    @:isVar public var fixedRotationFlag(default, set):Bool = false;
+
+    private function set_fixedRotationFlag(fixedRotationFlag:Bool):Bool
+    {
+        if(this.fixedRotationFlag == fixedRotationFlag) return fixedRotationFlag;
+        this.fixedRotationFlag = fixedRotationFlag;
+        resetMassData();
+        return fixedRotationFlag;
+    }
 
     private inline function invOr0(value:Float):Float
     {

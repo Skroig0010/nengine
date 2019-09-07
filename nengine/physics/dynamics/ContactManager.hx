@@ -12,7 +12,7 @@ class ContactManager
 
     public var broadPhase:BroadPhase;
     public var contactFilter:Option<ContactFilter> = None;
-    public var contactListener:ContactListener;
+    public var contactListener:Option<ContactListener> = None;
 
     public function new (broadPhase:BroadPhase)
     {
@@ -31,9 +31,12 @@ class ContactManager
         var bodyA = shapeA.body;
         var bodyB = shapeB.body;
 
-        if(contactListener != null && contact.touchingFlag)
+        switch(contactListener)
         {
-            contactListener.endContact(contact);
+            case Some(listener) if(contact.touchingFlag):
+                listener.endContact(contact);
+            case Some(_):
+            case None:
         }
 
         if(contact.prev != null)
