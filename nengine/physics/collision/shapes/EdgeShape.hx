@@ -12,6 +12,7 @@ class EdgeShape implements Shape
     public var friction:Float;
     public var restitution:Float;
     public var density:Float;
+    public var name:String;
     public var radius:Float = 0.05;
     // 比較用
     public var id(default, null):Int;
@@ -21,12 +22,13 @@ class EdgeShape implements Shape
     // optional
     public var vertex0:Option<Vec2>, vertex3:Option<Vec2>;
 
-    public function new(vertex0:Vec2, vertex1:Vec2, ?vertex0:Vec2, ?vertex3:Vec2)
+    public function new(vertex0:Vec2, vertex1:Vec2, ?vertex0:Vec2, ?vertex3:Vec2, name:String = name)
     {
         this.vertex1 = vertex1;
         this.vertex2 = vertex2;
         this.vertex0 = if(vertex0 != null) Some(vertex0) else None;
         this.vertex3 = if(vertex3 != null) Some(vertex3) else None;
+        this.name = name;
     }
 
     public function computeAABB(transform:Transform2):AABB2

@@ -316,7 +316,11 @@ class PolygonIntersection
         while(index != maxYIndex)
         {
             nextIndex = (if(forward) index + 1 else index - 1 + size) % size;
-            segments.push(new Segment2(conv.vertices[index] + det, conv.vertices[nextIndex] + det));
+
+            // 両端はちゃんとx座標が合うようにする
+            var det1 = if(index == minYIndex) new Vec2(0, det.y) else det;
+            var det2 = if(nextIndex == maxYIndex) new Vec2(0, det.y) else det;
+            segments.push(new Segment2(conv.vertices[index] + det1, conv.vertices[nextIndex] + det2));
             // indexの更新
             index = nextIndex;
         }

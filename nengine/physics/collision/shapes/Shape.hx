@@ -12,10 +12,13 @@ interface Shape
     public var friction:Float;
     public var restitution:Float;
     public var density:Float;
+    public var name:String;
     public var radius:Float;
     // 比較用
     public var id(default, null):Int;
 
     public function computeAABB(transform:Transform2):AABB2;
     public function computeMass():MassData;
+    public function testPoint(transform:Transform2, p:Vec2):Bool;
+    public function rayCast(input:RayCastInput, transform:Transform2):Option<RayCastOutput>;
 }

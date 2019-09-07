@@ -16,6 +16,7 @@ abstract Transform2(Transform2Data) from Transform2Data to Transform2Data
         return t.rotation * v + t.position;
     }
 
+    // tから見たv
     public static inline function mulXT(t:Transform2, v:Vec2):Vec2
     {
         return Vec2.rotVecT(t.rotation, v - t.position);
@@ -29,6 +30,7 @@ abstract Transform2(Transform2Data) from Transform2Data to Transform2Data
                 t1.rotation * t2.rotation);
     }
 
+    // t1から見たt2
     public static inline function mulT(t1:Transform2, t2:Transform2):Transform2
     {
         return new Transform2(

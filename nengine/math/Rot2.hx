@@ -47,11 +47,6 @@ abstract Rot2(Rot2Data) from Rot2Data to Rot2Data
         return qr;
     }
 
-    /*@:op(A*B)
-    public static inline function mulV(q:Rot2, v:Vec2):Vec2
-    {
-    }*/
-
     public inline function getAngle():Float
     {
         return Math.atan2(this.s, this.c);
