@@ -151,9 +151,12 @@ class ContactManager
             edge = edge.next;
         }
 
-        contactFilter.iter((filter)->{
+        switch(contactFilter)
+        {
+            case Some(filter):
             if(!filter.shouldCollide(shapeA, shapeB)) return;
-        });
+            case None:
+        }
 
         var contact = Contact.create(shapeA, shapeB);
 

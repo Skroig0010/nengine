@@ -11,6 +11,7 @@ import nengine.physics.collision.QuadTree;
 import nengine.physics.dynamics.contacts.Contact;
 import nengine.physics.dynamics.contacts.ContactListener;
 import nengine.physics.dynamics.contacts.ContactSolver;
+import nengine.physics.dynamics.ContactFilter;
 import nengine.physics.dynamics.ContactManager;
 import nengine.physics.dynamics.TimeStep;
 import nengine.physics.dynamics.Position;
@@ -62,7 +63,7 @@ class PhysicsSystem implements System
 
         contactManager = new ContactManager(new BroadPhase(new QuadTree(level, area)));
 
-        world.getEntities([RigidBody.componentName]).map(onEntityAdded);
+        world.getEntities([RigidBody.componentName]).iter(onEntityAdded);
         world.entityAdded([RigidBody.componentName]).add(onEntityAdded);
         world.entityRemoved([RigidBody.componentName]).add(onEntityRemoved);
     }
@@ -351,5 +352,10 @@ class PhysicsSystem implements System
     public function setContactListener(contactListener:ContactListener):Void
     {
         contactManager.contactListener = Some(contactListener);
+    }
+
+    public function setContactFilter(contactFilter:ContactFilter):Void
+    {
+        contactManager.contactFilter = Some(contactFilter);
     }
 }
